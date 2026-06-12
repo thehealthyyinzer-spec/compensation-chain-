@@ -34,8 +34,9 @@ export default function ScanLive() {
   const [holdLabel, setHoldLabel] = useState("");
   const [instruction, setInstruction] = useState("");
   const [scanProgress, setScanProgress] = useState<{ name: string; state: "done" | "active" | "pending" }[]>([]);
-  // Fullscreen mode — auto-enable on mobile
-  const [isFullscreen, setIsFullscreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
+  const [repFlash, setRepFlash] = useState(false); // brief green flash on rep
+  // Fullscreen mode — always on for mobile (< 768px), toggleable on desktop
+  const [isFullscreen, setIsFullscreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
 
   // Scan state refs (mutable, not triggering re-renders)
   const queueRef = useRef<string[]>([]);
@@ -163,11 +164,12 @@ export default function ScanLive() {
   }, []);
 
   // Draw skeleton overlay
-  const drawSkel = useCallback((ctx: CanvasRenderingContext2D, lm: any[], W: number, H: number, capturing: boolean) => {
+  const drawSkel = useCallback((ctx: CanvasRenderingContext2D, lm: any[], W: number, H: number, capturing: boolean, flash?: boolean) => {
     const CONN = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
     ctx.lineWidth = 5;
     ctx.lineCap = "round";
-    ctx.strokeStyle = capturing ? "#00B4D8" : "#34D399";
+    // flash = green rep confirmed, capturing = blue active hold/rep, else white idle
+    ctx.strokeStyle = flash ? "#34D399" : capturing ? "#00B4D8" : "rgba(255,255,255,0.5)";
     CONN.forEach(([a, b]) => {
       const p = lm[a], q = lm[b];
       if ((p.visibility ?? 1) < 0.4 || (q.visibility ?? 1) < 0.4) return;
@@ -176,9 +178,10 @@ export default function ScanLive() {
       ctx.lineTo(q.x * W, q.y * H);
       ctx.stroke();
     });
+    const dotColor = flash ? "#34D399" : capturing ? "#00B4D8" : "rgba(255,255,255,0.7)";
     lm.forEach((p, i) => {
       if ((p.visibility ?? 1) < 0.4 || i < 11) return;
-      ctx.fillStyle = "#F8F6F0";
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(p.x * W, p.y * H, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -367,7 +370,7 @@ export default function ScanLive() {
         capturing = handleHold(vals, now, mv);
       }
 
-      drawSkel(ctx, lm, canvas.width, canvas.height, capturing);
+      drawSkel(ctx, lm, canvas.width, canvas.height, capturing, repFlash);
     } else {
       setStatus("No body detected — step back");
       holdStartRef.current = null;
@@ -522,6 +525,8 @@ export default function ScanLive() {
         dyn.amp = dyn.amp * 0.5 + dyn.bottom * 0.5;
         if (dyn.bottomSnap) dyn[ph.view].push(dyn.bottomSnap);
         ding();
+        setRepFlash(true);
+        setTimeout(() => setRepFlash(false), 400);
 
         const count = dyn[ph.view].length;
         setMovePill(`${ph.view.toUpperCase()} ${count}/${ph.reps}`);

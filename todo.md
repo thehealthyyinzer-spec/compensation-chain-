@@ -67,3 +67,11 @@
 - [x] Task 6: Fullscreen scan mode on mobile (fixed inset-0, minimal overlay, auto-enable on mobile)
 - [x] Task 7: Free scan GHL funnel endpoint + free_scan_submissions DB table
 - [x] Send magic link button on coach dashboard (fires login link directly to client email)
+
+## Phone Test Bugs (real scan feedback)
+- [x] Camera fullscreen UX — auto-fullscreen on mobile (< 768px), fills screen with gradient overlays
+- [x] Skeleton color feedback — white idle, blue while capturing, green flash on rep confirm
+- [x] Audio ding confirmation — ding fires on rep complete + green flash
+- [x] Ankle test simplified — knee-to-wall style, 4s hold, lower trigger threshold, cleaner instructions
+- [x] PDF text invisible — white background, dark text, fully readable
+- [x] PDF raw data — human-friendly metric names, Good/Watch/Flag status labels, no raw numbers
