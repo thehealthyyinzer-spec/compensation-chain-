@@ -53,3 +53,6 @@
 - [x] Cloud database persistence (replace localStorage)
 - [x] Scan data stored per client per session
 - [x] Webhook retry logic for GHL (pending queue + attempts tracking; actual retry worker deferred until GHL URL configured)
+
+## UX Enhancements
+- [x] Pre-scan tutorial screen before camera loads (phone positioning + body placement)
