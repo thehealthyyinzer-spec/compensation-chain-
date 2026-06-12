@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and, lt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, clients, magicLinks, sessions, webhookLogs, type InsertClient, type InsertSession } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -79,14 +78,133 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ==================== CLIENT HELPERS ====================
+
+export async function createClient(data: InsertClient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(clients).values(data);
+  return result[0].insertId;
+}
+
+export async function getClientByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(clients).where(eq(clients.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(clients).where(eq(clients.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getClientById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllClients() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(clients).where(eq(clients.active, true));
+}
+
+export async function updateClient(id: number, data: Partial<InsertClient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(clients).set(data).where(eq(clients.id, id));
+}
+
+// ==================== MAGIC LINK HELPERS ====================
+
+export async function createMagicLink(email: string, token: string, expiresAt: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(magicLinks).values({ email, token, expiresAt });
+}
+
+export async function getMagicLinkByToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(magicLinks)
+    .where(and(eq(magicLinks.token, token), eq(magicLinks.used, false)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function markMagicLinkUsed(token: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(magicLinks).set({ used: true }).where(eq(magicLinks.token, token));
+}
+
+// ==================== SESSION HELPERS ====================
+
+export async function createSession(data: InsertSession) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(sessions).values(data);
+  return result[0].insertId;
+}
+
+export async function getSessionsByClientId(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sessions)
+    .where(eq(sessions.clientId, clientId))
+    .orderBy(desc(sessions.date));
+}
+
+export async function getSessionById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(sessions).where(eq(sessions.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateSession(id: number, data: Partial<InsertSession>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(sessions).set(data).where(eq(sessions.id, id));
+}
+
+export async function getLatestSessionForClient(clientId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(sessions)
+    .where(eq(sessions.clientId, clientId))
+    .orderBy(desc(sessions.date))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// ==================== WEBHOOK HELPERS ====================
+
+export async function createWebhookLog(sessionId: number, payload: unknown) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(webhookLogs).values({ sessionId, payload });
+}
+
+export async function getPendingWebhooks() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(webhookLogs)
+    .where(and(eq(webhookLogs.status, "pending"), lt(webhookLogs.attempts, 3)));
+}
+
+export async function updateWebhookLog(id: number, data: { status: "sent" | "failed"; attempts: number; responseCode?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(webhookLogs).set({ ...data, lastAttemptAt: new Date() }).where(eq(webhookLogs.id, id));
+}
