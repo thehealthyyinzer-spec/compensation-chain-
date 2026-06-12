@@ -66,3 +66,4 @@
 - [x] Task 5: Plain-language gap callout banner in ScanResults (worst metric with orange border + gold headline)
 - [x] Task 6: Fullscreen scan mode on mobile (fixed inset-0, minimal overlay, auto-enable on mobile)
 - [x] Task 7: Free scan GHL funnel endpoint + free_scan_submissions DB table
+- [x] Send magic link button on coach dashboard (fires login link directly to client email)

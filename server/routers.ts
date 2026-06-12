@@ -38,6 +38,26 @@ export const appRouter = router({
         return { success: true, token };
       }),
 
+    // Admin sends a magic link directly to a client's email
+    sendToClient: adminProcedure
+      .input(z.object({ email: z.string().email(), origin: z.string() }))
+      .mutation(async ({ input }) => {
+        const token = nanoid(48);
+        const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+        await db.createMagicLink(input.email, token, expiresAt);
+
+        const loginUrl = `${input.origin}/verify?token=${token}`;
+
+        // Notify owner with the link (so it can be forwarded or sent via GHL)
+        await notifyOwner({
+          title: `Magic link generated for ${input.email}`,
+          content: `Login link (expires in 24h):\n${loginUrl}`,
+        });
+
+        return { success: true, loginUrl, token };
+      }),
+
     // Verify a magic link token and create a session
     verify: publicProcedure
       .input(z.object({ token: z.string() }))

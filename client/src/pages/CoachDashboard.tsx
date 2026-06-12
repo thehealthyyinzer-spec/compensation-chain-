@@ -9,7 +9,7 @@ import { computeScanStatus } from "@/lib/scanUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, setTriggerClientId, triggerWebhook }: any) {
+function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, setTriggerClientId, triggerWebhook, sendMagicLink }: any) {
   const status = getStatus(c.latestSession);
   const lastDate = c.latestSession ? new Date(c.latestSession.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "No scans";
   return (
@@ -22,12 +22,21 @@ function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, se
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap justify-end">
         {status !== "—" && (
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full font-display tracking-wider ${statusColors[status] || ""}`}>
             {status}
           </span>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="font-display text-xs uppercase tracking-wider"
+          disabled={sendMagicLink?.isPending}
+          onClick={() => sendMagicLink?.mutate({ email: c.email, origin: window.location.origin })}
+        >
+          {sendMagicLink?.isPending ? "…" : "Send Link"}
+        </Button>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-wider" onClick={() => setTriggerClientId(c.id)}>
@@ -81,6 +90,19 @@ export default function CoachDashboard() {
       setTriggerClientId(null);
       setGhlTag("");
     },
+  });
+
+  // Magic link sender
+  const sendMagicLink = trpc.magicLink.sendToClient.useMutation({
+    onSuccess: (data) => {
+      // Copy the login URL to clipboard and show toast
+      navigator.clipboard?.writeText(data.loginUrl).catch(() => {});
+      toast.success("Login link copied to clipboard.", {
+        description: data.loginUrl,
+        duration: 8000,
+      });
+    },
+    onError: () => toast.error("Failed to generate link."),
   });
 
   if (authLoading || isLoading) {
@@ -167,7 +189,7 @@ export default function CoachDashboard() {
                   Needs Attention
                 </h3>
                 <div className="space-y-2">
-                  {categorized.attention?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                  {categorized.attention?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
                 </div>
               </div>
             )}
@@ -179,7 +201,7 @@ export default function CoachDashboard() {
                   Scan Due
                 </h3>
                 <div className="space-y-2">
-                  {categorized.due?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                  {categorized.due?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
                 </div>
               </div>
             )}
@@ -191,7 +213,7 @@ export default function CoachDashboard() {
                   On Track
                 </h3>
                 <div className="space-y-2">
-                  {categorized.good?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                  {categorized.good?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
                 </div>
               </div>
             )}
