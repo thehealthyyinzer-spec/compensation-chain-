@@ -3,12 +3,22 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FULL_BATTERY, MOVES } from "@/lib/moveLibrary";
+import { trpc } from "@/lib/trpc";
 
 export default function ScanPage() {
   const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [selectedMoves, setSelectedMoves] = useState<string[]>([...FULL_BATTERY]);
   const [showTutorial, setShowTutorial] = useState(false);
+
+  // Check if client has completed at least one scan (returning client)
+  const { data: sessions } = trpc.scan.mySessions.useQuery(undefined, { enabled: isAuthenticated });
+  const hasCompletedScan = (sessions?.length || 0) > 0;
+
+  // localStorage flag for manual "don't show again" preference
+  const [skipPref, setSkipPref] = useState(() => localStorage.getItem("chaincheck-skip-tutorial") === "true");
+
+  const shouldSkipTutorial = hasCompletedScan || skipPref;
 
   // Wait for auth to load before deciding
   if (loading) {
@@ -147,9 +157,25 @@ export default function ScanPage() {
               I'm Ready — Start Camera
             </Button>
 
+            {!hasCompletedScan && (
+              <label className="flex items-center justify-center gap-2 mt-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={skipPref}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setSkipPref(val);
+                    localStorage.setItem("chaincheck-skip-tutorial", val ? "true" : "false");
+                  }}
+                  className="w-4 h-4 rounded border-border accent-primary"
+                />
+                <span className="text-xs text-muted-foreground">Don't show this next time</span>
+              </label>
+            )}
+
             <button
               onClick={() => setShowTutorial(false)}
-              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
             >
               ← Back to battery selection
             </button>
@@ -223,12 +249,28 @@ export default function ScanPage() {
           </div>
 
           <Button
-            onClick={() => setShowTutorial(true)}
+            onClick={() => {
+              if (shouldSkipTutorial) {
+                sessionStorage.setItem("chaincheck-battery", JSON.stringify(selectedMoves));
+                navigate("/scan/live");
+              } else {
+                setShowTutorial(true);
+              }
+            }}
             disabled={selectedMoves.length === 0}
             className="w-full mt-5 font-display text-lg font-extrabold uppercase tracking-wider"
           >
             Begin Session
           </Button>
+
+          {shouldSkipTutorial && (
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Show setup instructions
+            </button>
+          )}
         </div>
 
         <Button

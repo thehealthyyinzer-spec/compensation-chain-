@@ -56,3 +56,4 @@
 
 ## UX Enhancements
 - [x] Pre-scan tutorial screen before camera loads (phone positioning + body placement)
+- [x] Skip tutorial toggle for returning clients (auto-bypass after first scan)
