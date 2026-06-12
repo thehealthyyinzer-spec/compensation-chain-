@@ -162,36 +162,6 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        {/* Social Proof — results-based client stories */}
-        <div className="bg-card rounded-xl p-5 border border-border">
-          <h3 className="font-display text-base font-extrabold uppercase tracking-wide text-muted-foreground mb-4">
-            What the Chain Looks Like When It Clears
-          </h3>
-          <div className="space-y-4">
-            <div className="border-l-2 border-primary/40 pl-4">
-              <p className="text-sm text-foreground leading-relaxed">
-                "11 years of knee pain. Doctors said it was the knee. Coach Nick traced it to my ankles in the first scan. Four checkpoints in, the knee pain is gone."
-              </p>
-              <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Rebuild client · Week 8</p>
-            </div>
-            <div className="border-l-2 border-primary/40 pl-4">
-              <p className="text-sm text-foreground leading-relaxed">
-                "I thought my lower back was the problem. It wasn't. My hips weren't loading. Six weeks of the protocol and I'm back to deadlifting without pain."
-              </p>
-              <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Rebuild client · Week 6</p>
-            </div>
-            <div className="border-l-2 border-primary/40 pl-4">
-              <p className="text-sm text-foreground leading-relaxed">
-                "I'd been told to stretch my hamstrings for years. Turns out my ankles were the problem the whole time. The chain made it obvious."
-              </p>
-              <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Restart client · Week 4</p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground/60 mt-4 italic">
-            Results are specific to each client's compensation pattern. The scan reads your chain, not a generic template.
-          </p>
-        </div>
-
         {/* Navigation */}
         <div className="flex gap-3 flex-wrap">
           <Button variant="outline" onClick={() => navigate("/scan")} className="font-display uppercase tracking-wider font-bold">
