@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { MOVES, allMetrics, metricLevel, fmt, BENCHMARKS, REGION_ORDER, REGION_LABELS, BODY_REGIONS } from "@/lib/moveLibrary";
 import { computeRegionStatus } from "@/lib/scanUtils";
+import { getSingleSessionProtocol } from "@/lib/progressionLogic";
 import { toast } from "sonner";
 
 export default function ScanResults() {
@@ -90,6 +91,9 @@ export default function ScanResults() {
     });
     return worst as { m: any; v: number; mvName: string; reg: string } | null;
   })();
+
+  // Single-session protocol suggestion
+  const suggestedProtocol = getSingleSessionProtocol(results);
 
   const PLAIN_LANGUAGE: Record<string, (v: string, age: number) => string> = {
     shinAngle: (v, age) => `Your ankle mobility reads ${v} — the norm for your age group is ≥${age <= 40 ? 40 : age <= 50 ? 38 : 32}°. Limited dorsiflexion affects your squat, stairs, and walking gait. When ankles can't absorb load, it travels up the chain to your knees and hips.`,
@@ -252,6 +256,33 @@ export default function ScanResults() {
             </span>
           </div>
         </div>
+
+        {/* Protocol Suggestion */}
+        {suggestedProtocol && (
+          <div className="bg-card rounded-xl p-5 border border-primary/30">
+            <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-primary mb-1">
+              What To Work On Next
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">Based on your scan, Coach Nick's framework points here first.</p>
+            <div className="space-y-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                <p className="text-sm font-bold text-foreground mb-0.5">{suggestedProtocol.title}</p>
+                <p className="text-xs text-muted-foreground italic leading-relaxed">"{suggestedProtocol.cue}"</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Focus block:</p>
+                <ul className="space-y-1">
+                  {suggestedProtocol.exercises.map((ex, i) => (
+                    <li key={i} className="text-xs text-foreground flex items-start gap-2">
+                      <span className="text-primary mt-0.5">›</span>
+                      {ex}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Client Feedback */}
         <div className="bg-card rounded-xl p-5 border border-border">

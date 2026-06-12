@@ -75,3 +75,8 @@
 - [x] Ankle test simplified — knee-to-wall style, 4s hold, lower trigger threshold, cleaner instructions
 - [x] PDF text invisible — white background, dark text, fully readable
 - [x] PDF raw data — human-friendly metric names, Good/Watch/Flag status labels, no raw numbers
+
+## Progression Logic & Social Proof
+- [x] Progression logic engine — detect persistent patterns after Week 4+, surface activation protocol suggestions
+- [x] Protocol assignment UI on coach dashboard — Nick assigns a protocol from scan result
+- [x] Social proof module — results-based client stories in client dashboard

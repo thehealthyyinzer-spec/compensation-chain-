@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { MOVES, allMetrics, metricLevel, fmt, REGION_ORDER, REGION_LABELS } from "@/lib/moveLibrary";
 import { computeScanStatus, computeRegionStatus } from "@/lib/scanUtils";
+import { detectProgressionFlags } from "@/lib/progressionLogic";
 import ChainMap from "@/components/ChainMap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -85,6 +86,15 @@ export default function CoachClientView() {
 
   const COLORS = ["#00B4D8", "#F97316", "#34D399", "#FBBF24", "#F87171", "#A78BFA", "#EC4899", "#6EE7B7"];
 
+  // Progression flags — detect persistent patterns across sessions
+  const progressionFlags = detectProgressionFlags(
+    sortedSessions.map((s) => ({
+      results: s.results as any[],
+      checkpointId: s.checkpointId,
+      week: s.week,
+    }))
+  );
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
@@ -119,6 +129,59 @@ export default function CoachClientView() {
             </span>
           )}
         </div>
+
+        {/* Progression Flags — Protocol Suggestions */}
+        {progressionFlags.length > 0 && (
+          <div className="bg-card rounded-xl p-5 border border-orange/40">
+            <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-orange mb-1">
+              Program Adjustment Needed
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              These patterns have persisted across {sortedSessions.length} scans. Time to adjust the block.
+            </p>
+            <div className="space-y-4">
+              {progressionFlags.map((flag) => (
+                <div key={flag.pattern} className="rounded-xl border border-border p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full font-display tracking-wider ${
+                          flag.protocol.priority === "high" ? "bg-bad/15 text-bad" : "bg-warn/15 text-warn"
+                        }`}>
+                          {flag.protocol.priority === "high" ? "HIGH PRIORITY" : "MONITOR"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{flag.sessionCount} scans</span>
+                      </div>
+                      <h4 className="font-display text-base font-extrabold uppercase tracking-wide">
+                        {flag.protocol.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">{flag.label}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground italic leading-relaxed">
+                      "{flag.protocol.cue}"
+                    </p>
+                    <p className="text-xs text-primary font-semibold mt-1">— Coach Nick</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Assign this block:</p>
+                    <ul className="space-y-1">
+                      {flag.protocol.exercises.map((ex, i) => (
+                        <li key={i} className="text-xs text-foreground flex items-start gap-2">
+                          <span className="text-primary mt-0.5">›</span>
+                          {ex}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Chain Map */}
         {latestSession && (
