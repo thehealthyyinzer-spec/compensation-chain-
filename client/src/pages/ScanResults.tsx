@@ -250,6 +250,31 @@ export default function ScanResults() {
           <Button variant="outline" onClick={() => navigate("/history")} className="font-display uppercase tracking-wider font-bold">
             See My Progress
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Open PDF in new window for printing
+              const pdfWindow = window.open("", "_blank");
+              if (pdfWindow) {
+                pdfWindow.document.write(`<html><head><title>Loading PDF...</title></head><body><p>Generating PDF summary...</p></body></html>`);
+                fetch(`/api/trpc/scan.getPdf?batch=1&input=${encodeURIComponent(JSON.stringify({"0":{"json":{"sessionId":sessionId}}}))}`, { credentials: "include" })
+                  .then(r => r.json())
+                  .then(data => {
+                    const html = data[0]?.result?.data?.json?.html;
+                    if (html) {
+                      pdfWindow.document.open();
+                      pdfWindow.document.write(html);
+                      pdfWindow.document.close();
+                      setTimeout(() => pdfWindow.print(), 500);
+                    }
+                  })
+                  .catch(() => { pdfWindow.document.write("<p>Error generating PDF.</p>"); });
+              }
+            }}
+            className="font-display uppercase tracking-wider font-bold"
+          >
+            Download PDF
+          </Button>
           <Button variant="outline" onClick={() => navigate("/dashboard")} className="font-display uppercase tracking-wider font-bold">
             Back to Dashboard
           </Button>

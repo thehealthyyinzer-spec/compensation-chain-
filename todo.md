@@ -19,10 +19,10 @@
 ## Scan Engine
 - [x] Movement battery picker (Squat, Single-leg balance, Overhead reach, Hip hinge, Lunge)
 - [x] Ability to deselect movements before each scan
-- [ ] Full MediaPipe pose engine (rep detection, EMA smoothing, hold timers, skeleton overlay)
-- [ ] Audio ding feedback on rep count
-- [ ] Front + side phase separation for dynamic movements
-- [ ] Adaptive rep detection with fatigue tracking
+- [x] Full MediaPipe pose engine (rep detection, EMA smoothing, hold timers, skeleton overlay)
+- [x] Audio ding feedback on rep count
+- [x] Front + side phase separation for dynamic movements
+- [x] Adaptive rep detection with fatigue tracking
 - [x] Lower DOWN threshold (amp*0.30, floor 0.016) for shallow squat detection
 - [x] Updated squat/split squat instructions — "you don't need to go deep"
 
@@ -35,7 +35,7 @@
 ## Client Feedback & Sharing
 - [x] "Send to Coach Nick" button with guided questions ("What did you feel? Any pain or tightness?")
 - [x] GHL webhook fires with full session payload (webhook_logs table + pending queue; actual HTTP POST deferred until GHL URL configured)
-- [ ] Downloadable PDF summary (metrics, coach note, chain map)
+- [x] Downloadable PDF summary (metrics, coach note, chain map)
 
 ## Coach Dashboard (Admin Only)
 - [x] All clients list with latest scan status (CLEAN / WATCH / FLAGS)

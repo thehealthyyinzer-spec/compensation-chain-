@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
+import { generatePdfHtml } from "./pdf";
 
 export const appRouter = router({
   system: systemRouter,
@@ -223,6 +224,28 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return db.getSessionById(input.id);
+      }),
+
+    // Generate PDF HTML for a session
+    getPdf: protectedProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const session = await db.getSessionById(input.sessionId);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND" });
+        const client = await db.getClientById(session.clientId);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const html = generatePdfHtml({
+          clientName: client.name,
+          program: client.program,
+          checkpoint: session.checkpoint,
+          week: session.week,
+          date: session.date.toISOString(),
+          results: session.results as any[],
+          note: session.note || "",
+        });
+
+        return { html };
       }),
   }),
 

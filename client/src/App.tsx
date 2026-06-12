@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import MagicLinkVerify from "./pages/MagicLinkVerify";
 import ClientDashboard from "./pages/ClientDashboard";
 import ScanPage from "./pages/ScanPage";
+import ScanLive from "./pages/ScanLive";
 import ScanResults from "./pages/ScanResults";
 import SessionHistory from "./pages/SessionHistory";
 import CoachDashboard from "./pages/CoachDashboard";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/verify" component={MagicLinkVerify} />
       <Route path="/dashboard" component={ClientDashboard} />
+      <Route path="/scan/live" component={ScanLive} />
       <Route path="/scan" component={ScanPage} />
       <Route path="/results/:sessionId" component={ScanResults} />
       <Route path="/history" component={SessionHistory} />
