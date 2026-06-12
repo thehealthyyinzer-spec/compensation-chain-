@@ -91,3 +91,19 @@ export const webhookLogs = mysqlTable("webhook_logs", {
 });
 
 export type WebhookLog = typeof webhookLogs.$inferSelect;
+
+/**
+ * Free scan submissions — from the public Chain Check tool.
+ * Captures email, name, quiz result, and scan data for GHL funnel.
+ */
+export const freeScanSubmissions = mysqlTable("free_scan_submissions", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  firstName: varchar("firstName", { length: 128 }).notNull(),
+  quizResult: mysqlEnum("quizResult", ["rebuild", "restart"]).notNull(),
+  scanData: json("scanData").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FreeScanSubmission = typeof freeScanSubmissions.$inferSelect;
+export type InsertFreeScanSubmission = typeof freeScanSubmissions.$inferInsert;

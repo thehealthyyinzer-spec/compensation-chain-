@@ -9,6 +9,49 @@ import { computeScanStatus } from "@/lib/scanUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, setTriggerClientId, triggerWebhook }: any) {
+  const status = getStatus(c.latestSession);
+  const lastDate = c.latestSession ? new Date(c.latestSession.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "No scans";
+  return (
+    <div className="flex items-center justify-between rounded-xl p-4 border border-border hover:border-primary/50 transition-all">
+      <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/coach/client/${c.id}`)}>        <div>
+          <div className="font-display text-lg font-bold tracking-wide">{c.name}</div>
+          <div className="text-xs text-muted-foreground">
+            {c.program.toUpperCase()} · {lastDate}
+            {c.latestSession && ` · Wk ${c.latestSession.week}`}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {status !== "—" && (
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full font-display tracking-wider ${statusColors[status] || ""}`}>
+            {status}
+          </span>
+        )}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-wider" onClick={() => setTriggerClientId(c.id)}>
+              GHL
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="font-display uppercase tracking-wider">Trigger GHL for {c.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              <Input placeholder="Tag name (e.g., needs-review)" value={ghlTag} onChange={(e: any) => setGhlTag(e.target.value)} />
+              <Button onClick={() => triggerWebhook.mutate({ clientId: c.id, tag: ghlTag })} disabled={triggerWebhook.isPending} className="w-full font-display uppercase tracking-wider font-bold">
+                {triggerWebhook.isPending ? "Sending..." : "Apply Tag & Trigger"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-wider" onClick={() => navigate(`/coach/client/${c.id}`)}>View</Button>
+      </div>
+    </div>
+  );
+}
+
 export default function CoachDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
@@ -64,6 +107,30 @@ export default function CoachDashboard() {
     FLAGS: "bg-bad/15 text-bad",
   };
 
+  // Priority queue categorization
+  const now = Date.now();
+  const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
+  const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+
+  const categorized = {
+    attention: [] as typeof clients,
+    due: [] as typeof clients,
+    good: [] as typeof clients,
+  };
+
+  clients?.forEach((c) => {
+    const lastScan = c.latestSession ? new Date(c.latestSession.date).getTime() : 0;
+    const status = c.latestSession ? computeScanStatus(c.latestSession.results as any[]) : null;
+    const daysSinceScan = lastScan ? (now - lastScan) / (24 * 60 * 60 * 1000) : 999;
+    const isDue = daysSinceScan >= 14;
+    const isInactive = daysSinceScan >= 10;
+    const hasFlags = status === "FLAGS";
+
+    if (hasFlags || (isInactive && !c.latestSession)) categorized.attention!.push(c);
+    else if (isDue) categorized.due!.push(c);
+    else categorized.good!.push(c);
+  });
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
@@ -86,88 +153,50 @@ export default function CoachDashboard() {
       </header>
 
       <div className="container py-6 space-y-5">
-        {/* Client List */}
-        <div className="bg-card rounded-xl p-5 border border-border">
-          <h3 className="font-display text-xl font-extrabold uppercase tracking-wide text-gold mb-4">
-            All Clients
-          </h3>
-
-          {!clients || clients.length === 0 ? (
+        {/* Priority Queue */}
+        {!clients || clients.length === 0 ? (
+          <div className="bg-card rounded-xl p-5 border border-border">
             <p className="text-sm text-muted-foreground">No clients yet. Add your first client above.</p>
-          ) : (
-            <div className="space-y-2">
-              {clients.map((c) => {
-                const status = getStatus(c.latestSession);
-                const lastDate = c.latestSession ? new Date(c.latestSession.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "No scans";
+          </div>
+        ) : (
+          <>
+            {/* Needs Attention */}
+            {(categorized.attention?.length ?? 0) > 0 && (
+              <div className="bg-card rounded-xl p-5 border border-orange/40">
+                <h3 className="font-display text-base font-extrabold uppercase tracking-wider text-orange mb-3">
+                  Needs Attention
+                </h3>
+                <div className="space-y-2">
+                  {categorized.attention?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                </div>
+              </div>
+            )}
 
-                return (
-                  <div
-                    key={c.id}
-                    className="flex items-center justify-between rounded-xl p-4 border border-border hover:border-primary/50 transition-all"
-                  >
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/coach/client/${c.id}`)}>
-                      <div>
-                        <div className="font-display text-lg font-bold tracking-wide">{c.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {c.program.toUpperCase()} · {lastDate}
-                          {c.latestSession && ` · Wk ${c.latestSession.week}`}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {status !== "—" && (
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full font-display tracking-wider ${statusColors[status] || ""}`}>
-                          {status}
-                        </span>
-                      )}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="font-display text-xs uppercase tracking-wider"
-                            onClick={() => setTriggerClientId(c.id)}
-                          >
-                            GHL
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle className="font-display uppercase tracking-wider">
-                              Trigger GHL for {c.name}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-3 pt-2">
-                            <Input
-                              placeholder="Tag name (e.g., needs-review)"
-                              value={ghlTag}
-                              onChange={(e) => setGhlTag(e.target.value)}
-                            />
-                            <Button
-                              onClick={() => triggerWebhook.mutate({ clientId: c.id, tag: ghlTag })}
-                              disabled={triggerWebhook.isPending}
-                              className="w-full font-display uppercase tracking-wider font-bold"
-                            >
-                              {triggerWebhook.isPending ? "Sending..." : "Apply Tag & Trigger"}
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-display text-xs uppercase tracking-wider"
-                        onClick={() => navigate(`/coach/client/${c.id}`)}
-                      >
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+            {/* Scan Due */}
+            {(categorized.due?.length ?? 0) > 0 && (
+              <div className="bg-card rounded-xl p-5 border border-primary/40">
+                <h3 className="font-display text-base font-extrabold uppercase tracking-wider text-primary mb-3">
+                  Scan Due
+                </h3>
+                <div className="space-y-2">
+                  {categorized.due?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                </div>
+              </div>
+            )}
+
+            {/* On Track */}
+            {(categorized.good?.length ?? 0) > 0 && (
+              <div className="bg-card rounded-xl p-5 border border-border">
+                <h3 className="font-display text-base font-extrabold uppercase tracking-wider text-gold mb-3">
+                  On Track
+                </h3>
+                <div className="space-y-2">
+                  {categorized.good?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} />)}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Add Client Dialog */}

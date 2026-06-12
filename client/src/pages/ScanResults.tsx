@@ -76,6 +76,33 @@ export default function ScanResults() {
     return "#F87171";
   };
 
+  // Find the single worst metric for the plain-language callout
+  const worstMetric = (() => {
+    let worst: { m: any; v: number; mvName: string; reg: string } | null = null;
+    let worstRank = 0;
+    REGION_ORDER.forEach((reg) => {
+      (byRegion[reg] || []).forEach(({ m, v, mvName }) => {
+        if (m.info) return;
+        const lv = metricLevel(m, v);
+        const rank = lv === "bad" ? 2 : lv === "warn" ? 1 : 0;
+        if (rank > worstRank) { worstRank = rank; worst = { m, v, mvName, reg }; }
+      });
+    });
+    return worst as { m: any; v: number; mvName: string; reg: string } | null;
+  })();
+
+  const PLAIN_LANGUAGE: Record<string, (v: string, age: number) => string> = {
+    shinAngle: (v, age) => `Your ankle mobility reads ${v} — the norm for your age group is ≥${age <= 40 ? 40 : age <= 50 ? 38 : 32}°. Limited dorsiflexion affects your squat, stairs, and walking gait. When ankles can't absorb load, it travels up the chain to your knees and hips.`,
+    cave: (v) => `Your knees are tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
+    kneeCave: (v) => `Your knees are tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
+    kneeValgusL: (v) => `Your left knee is tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
+    kneeValgusR: (v) => `Your right knee is tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
+    fwdHead: (v) => `Forward head posture reads ${v}. For every inch your head moves forward of your shoulders, it effectively adds 10 lbs of load to your cervical spine. This is recoverable — it's a position problem, not a structural one.`,
+    shoulderRound: (v) => `Rounded shoulders reduce your breathing capacity and load your upper traps chronically. It compounds with forward head and shows up as neck tension, headaches, and reduced overhead reach.`,
+    hipTilt: (v) => `Hip asymmetry of ${v} means one side of your pelvis is carrying more load than the other. Over time this creates predictable compensation patterns in the lower back, the opposite knee, and the IT band.`,
+    weightShift: (v) => `You're loading one leg ${v} more than the other during movement. This often traces back to a previous injury — the nervous system learns to protect the hurt side even after it heals.`,
+  };
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-border px-4 py-3">
@@ -109,6 +136,18 @@ export default function ScanResults() {
             ))}
           </div>
         </div>
+
+        {/* Plain-language gap callout */}
+        {worstMetric && PLAIN_LANGUAGE[(worstMetric as any).m.id] && (
+          <div className="rounded-xl p-5 border-l-4 border-orange bg-card border border-border">
+            <h4 className="font-display text-base font-extrabold uppercase tracking-wider text-gold mb-2">
+              What This Means For You
+            </h4>
+            <p className="text-sm text-foreground leading-relaxed">
+              {PLAIN_LANGUAGE[(worstMetric as any).m.id](fmt((worstMetric as any).m, (worstMetric as any).v), ageBracket)}
+            </p>
+          </div>
+        )}
 
         {/* Body figure + metrics */}
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4">

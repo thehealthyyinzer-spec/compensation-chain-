@@ -15,6 +15,13 @@
       "when": 1781300428690,
       "tag": "0001_chunky_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1781304092618,
+      "tag": "0002_wet_silver_surfer",
+      "breakpoints": true
     }
   ]
 }

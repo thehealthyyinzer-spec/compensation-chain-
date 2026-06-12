@@ -152,6 +152,7 @@ export const MOVES: Record<string, Move> = {
       { id: "hipTilt", name: "Hip drop (stance side)", unit: "°", warn: 3, bad: 6, region: "hips" },
       { id: "sway", name: "Sway", unit: "%", warn: 2, bad: 4, region: "hips" },
       { id: "torsoLean", name: "Torso lean", unit: "°", warn: 5, bad: 10, region: "core" },
+      { id: "swayFatigue", name: "Sway fatigue (early→late)", unit: "%", warn: 1.5, bad: 3, region: "hips" },
     ],
   },
   balanceR: {
@@ -171,6 +172,7 @@ export const MOVES: Record<string, Move> = {
       { id: "hipTilt", name: "Hip drop (stance side)", unit: "°", warn: 3, bad: 6, region: "hips" },
       { id: "sway", name: "Sway", unit: "%", warn: 2, bad: 4, region: "hips" },
       { id: "torsoLean", name: "Torso lean", unit: "°", warn: 5, bad: 10, region: "core" },
+      { id: "swayFatigue", name: "Sway fatigue (early→late)", unit: "%", warn: 1.5, bad: 3, region: "hips" },
     ],
   },
   hinge: {

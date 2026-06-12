@@ -96,10 +96,33 @@ export function generateCoachNote(
     });
   });
 
+  // Compensation chain detection — fire the first matching pattern only
+  const CHAIN_PATTERNS = [
+    {
+      condition: (flags: string[]) => flags.some(f => f.includes("ankle")) && flags.some(f => f.includes("knee")),
+      message: "Your ankles aren't absorbing the load they're designed to — so your knees are picking it up. That's the Compensation Chain. We fix the ankle, the knee follows."
+    },
+    {
+      condition: (flags: string[]) => flags.some(f => f.includes("hip")) && flags.some(f => f.includes("knee")),
+      message: "Dead glutes push load down to your knees and up to your lower back. The knee isn't the problem — the hip is where the chain breaks."
+    },
+    {
+      condition: (flags: string[]) => flags.some(f => f.includes("shoulder")) && flags.some(f => f.includes("core")),
+      message: "When the core isn't bracing, the shoulders compensate to stabilize. You'll feel it as neck and upper back tension. We build from the center out."
+    },
+    {
+      condition: (flags: string[]) => flags.some(f => f.includes("forward head")) && flags.some(f => f.includes("shoulder")),
+      message: "Forward head and rounded shoulders travel together — that's desk body. One rarely resolves without the other."
+    },
+  ];
+  const flagLabels = flagged.map(f => f.label.toLowerCase());
+  const chainMatch = CHAIN_PATTERNS.find(p => p.condition(flagLabels));
+
   if (!prevResults || prevResults.length === 0) {
     lines.push(`${name}, baseline is locked in. This is the reading we measure everything against ... so don't judge it, just own it.`);
     if (flagged.length) {
       lines.push(`Right now the chain is breaking down at: ${flagged.slice(0, 3).map((f) => `${f.label} (${f.val})`).join(", ")}. That's not bad news. That's the map.`);
+      if (chainMatch) lines.push(chainMatch.message);
       lines.push(`Remember ... pain rarely stays where it started. We work the pattern, not the symptom. Activation before load.`);
     } else {
       lines.push(`Clean baseline across the board. Good. Now we build capacity on top of it ... structure before motivation.`);
@@ -123,6 +146,7 @@ export function generateCoachNote(
   }
   if (flagged.length) {
     lines.push(`Still on the list: ${flagged.slice(0, 2).map((f) => f.label).join(" and ")}. That's where the next block focuses. Diagnose the pattern, not the goal.`);
+    if (chainMatch) lines.push(chainMatch.message);
   }
   if (cleared.length) {
     lines.push(`Cleared this round: ${cleared.slice(0, 2).join(", ")}. Lock it in ... we don't give links back.`);

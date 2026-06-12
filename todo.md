@@ -57,3 +57,12 @@
 ## UX Enhancements
 - [x] Pre-scan tutorial screen before camera loads (phone positioning + body placement)
 - [x] Skip tutorial toggle for returning clients (auto-bypass after first scan)
+
+## Claude's 7-Task Batch
+- [x] Task 1: Checkpoint selector on ScanPage + sessionStorage handoff to ScanLive (already done)
+- [x] Task 2: Compensation chain patterns in generateCoachNote (ankle→knee, hip→knee, shoulder→core, fwd head→shoulder)
+- [x] Task 3: Fatigue curve on balance holds (swayFatigue = lateMean - earlyMean) + swayFatigue metric in moveLibrary
+- [x] Task 4: Coach dashboard priority queue (Needs Attention / Scan Due / On Track sections)
+- [x] Task 5: Plain-language gap callout banner in ScanResults (worst metric with orange border + gold headline)
+- [x] Task 6: Fullscreen scan mode on mobile (fixed inset-0, minimal overlay, auto-enable on mobile)
+- [x] Task 7: Free scan GHL funnel endpoint + free_scan_submissions DB table

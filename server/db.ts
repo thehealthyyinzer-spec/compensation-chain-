@@ -1,6 +1,6 @@
 import { eq, desc, and, lt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, magicLinks, sessions, webhookLogs, type InsertClient, type InsertSession } from "../drizzle/schema";
+import { InsertUser, users, clients, magicLinks, sessions, webhookLogs, freeScanSubmissions, type InsertClient, type InsertSession, type InsertFreeScanSubmission } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -207,4 +207,15 @@ export async function updateWebhookLog(id: number, data: { status: "sent" | "fai
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(webhookLogs).set({ ...data, lastAttemptAt: new Date() }).where(eq(webhookLogs.id, id));
+}
+
+export async function createFreeScanSubmission(data: { email: string; firstName: string; quizResult: "rebuild" | "restart"; scanData: Record<string, any> }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(freeScanSubmissions).values({
+    email: data.email,
+    firstName: data.firstName,
+    quizResult: data.quizResult,
+    scanData: data.scanData,
+  });
 }

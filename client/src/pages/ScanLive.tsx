@@ -34,6 +34,8 @@ export default function ScanLive() {
   const [holdLabel, setHoldLabel] = useState("");
   const [instruction, setInstruction] = useState("");
   const [scanProgress, setScanProgress] = useState<{ name: string; state: "done" | "active" | "pending" }[]>([]);
+  // Fullscreen mode — auto-enable on mobile
+  const [isFullscreen, setIsFullscreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
 
   // Scan state refs (mutable, not triggering re-renders)
   const queueRef = useRef<string[]>([]);
@@ -420,10 +422,21 @@ export default function ScanLive() {
     ph.metrics.forEach((m: any) => {
       if (m.id === "sway") {
         avg[m.id] = holdSamplesRef.current[holdSamplesRef.current.length - 1]?.sway || 0;
+      } else if (m.id === "swayFatigue") {
+        // Computed below
       } else {
         avg[m.id] = meanArr(holdSamplesRef.current.map((x: any) => x[m.id]));
       }
     });
+
+    // Sway fatigue: difference between last-third and first-third average
+    if (mv.balance && holdSamplesRef.current.length >= 6) {
+      const samples = holdSamplesRef.current;
+      const third = Math.floor(samples.length / 3);
+      const earlyMean = samples.slice(0, third).reduce((a: number, b: any) => a + b.sway, 0) / third;
+      const lateMean = samples.slice(-third).reduce((a: number, b: any) => a + b.sway, 0) / third;
+      avg["swayFatigue"] = lateMean - earlyMean;
+    }
 
     if (mv.type === "hold2") {
       const key = queueRef.current[qiRef.current];
@@ -595,6 +608,58 @@ export default function ScanLive() {
     navigate("/scan");
   };
 
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black">
+        {/* Full-screen camera */}
+        <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" />
+
+        {/* Top overlay: movement + status */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-3 pt-safe pt-3 pb-2 bg-gradient-to-b from-black/70 to-transparent">
+          <div className="bg-black/60 px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-white/20 max-w-[55%] truncate">
+            {status}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="bg-black/60 px-3 py-1.5 rounded-full text-sm font-bold font-display tracking-wider border border-gold/60 text-gold">
+              {movePill}
+            </div>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white text-lg"
+              aria-label="Exit fullscreen"
+            >
+              ⧁
+            </button>
+          </div>
+        </div>
+
+        {/* Hold ring centered */}
+        {holdProgress !== null && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className="w-24 h-24 relative">
+              <svg width="96" height="96" className="-rotate-90">
+                <circle cx="48" cy="48" r="40" stroke="rgba(42,48,80,0.8)" strokeWidth="8" fill="rgba(26,31,58,.7)" />
+                <circle cx="48" cy="48" r="40" stroke="#00B4D8" strokeWidth="8" fill="none" strokeLinecap="round" strokeDasharray="251.3" strokeDashoffset={251.3 * (1 - holdProgress)} />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-display text-3xl font-extrabold text-white">
+                {Math.ceil((1 - holdProgress) * 8)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom overlay: instruction + cancel */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-safe pb-4 pt-2 bg-gradient-to-t from-black/80 to-transparent">
+          <p className="text-xs text-white/80 text-center leading-snug mb-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: instruction.replace(/<strong>[^<]*<\/strong>/g, "") }} />
+          <button onClick={handleAbort} className="w-full text-xs text-white/50 hover:text-white/80 transition-colors">
+            Cancel Session
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-border px-4 py-3">
@@ -641,9 +706,18 @@ export default function ScanLive() {
             {status}
           </div>
 
-          {/* Move pill */}
-          <div className="absolute top-3 right-3 z-10 bg-background/90 px-3 py-1.5 rounded-full text-sm font-bold font-display tracking-wider border border-gold text-gold">
-            {movePill}
+          {/* Move pill + fullscreen toggle */}
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+            <div className="bg-background/90 px-3 py-1.5 rounded-full text-sm font-bold font-display tracking-wider border border-gold text-gold">
+              {movePill}
+            </div>
+            <button
+              onClick={() => setIsFullscreen(true)}
+              className="w-8 h-8 rounded-full bg-background/90 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Enter fullscreen"
+            >
+              ⧂
+            </button>
           </div>
 
           {/* Hold ring */}

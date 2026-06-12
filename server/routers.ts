@@ -346,7 +346,7 @@ export const appRouter = router({
         return { success: true, payload };
       }),
 
-    // Update client details (admin)
+        // Update client details (admin)
     updateClient: adminProcedure
       .input(z.object({
         clientId: z.number(),
@@ -361,6 +361,52 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
-});
 
+  // ==================== FREE CHAIN CHECK FUNNEL ====================
+  freeChainCheck: router({
+    submit: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        firstName: z.string().min(1),
+        quizResult: z.enum(["rebuild", "restart"] as [string, ...string[]]),
+        scanData: z.record(z.string(), z.any()),
+      }))
+      .mutation(async ({ input }) => {
+        // Store in DB
+        await db.createFreeScanSubmission({
+          ...input,
+          quizResult: input.quizResult as "rebuild" | "restart",
+        });
+
+        // Notify owner
+        await notifyOwner({
+          title: `Free Chain Check: ${input.firstName} (${input.email})`,
+          content: `Quiz result: ${input.quizResult}\n\nScan data: ${JSON.stringify(input.scanData, null, 2)}`,
+        });
+
+        // Fire GHL webhook if configured (same pattern as paid scans)
+        const ghlUrl = process.env.GHL_WEBHOOK_URL;
+        if (ghlUrl) {
+          try {
+            const payload = {
+              email: input.email,
+              firstName: input.firstName,
+              tags: ["free-chain-check", `quiz-${input.quizResult}`],
+              scanData: input.scanData,
+              source: "free-chain-check-tool",
+            };
+            await fetch(ghlUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+          } catch (e) {
+            console.error("[GHL] Free scan webhook failed:", e);
+          }
+        }
+
+        return { success: true };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;
