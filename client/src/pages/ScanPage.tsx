@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FULL_BATTERY, MOVES } from "@/lib/moveLibrary";
 import { trpc } from "@/lib/trpc";
+import { CHECKPOINTS } from "@shared/types";
 
 export default function ScanPage() {
   const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [selectedMoves, setSelectedMoves] = useState<string[]>([...FULL_BATTERY]);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [selectedCheckpointId, setSelectedCheckpointId] = useState<string | null>(null);
 
   // Check if client has completed at least one scan (returning client)
   const { data: sessions } = trpc.scan.mySessions.useQuery(undefined, { enabled: isAuthenticated });
@@ -19,6 +21,10 @@ export default function ScanPage() {
   const [skipPref, setSkipPref] = useState(() => localStorage.getItem("chaincheck-skip-tutorial") === "true");
 
   const shouldSkipTutorial = hasCompletedScan || skipPref;
+
+  // Compute default to next unscanned checkpoint
+  const defaultCpIdx = Math.min(sessions?.length || 0, CHECKPOINTS.length - 1);
+  const activeCpId = selectedCheckpointId || CHECKPOINTS[defaultCpIdx]?.id;
 
   // Wait for auth to load before deciding
   if (loading) {
@@ -42,6 +48,7 @@ export default function ScanPage() {
 
   const startScan = () => {
     sessionStorage.setItem("chaincheck-battery", JSON.stringify(selectedMoves));
+    sessionStorage.setItem("chaincheck-checkpoint", activeCpId);
     navigate("/scan/live");
   };
 
@@ -202,6 +209,27 @@ export default function ScanPage() {
             <p className="text-sm text-muted-foreground leading-relaxed mt-1">
               This first scan is the reading we measure everything against for the next 16 weeks. Don't fix anything or try to look good ... move how you actually move. That's the whole point.
             </p>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-2">
+              Which checkpoint is this?
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {CHECKPOINTS.map((cp) => (
+                <button
+                  key={cp.id}
+                  onClick={() => setSelectedCheckpointId(cp.id)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all font-display uppercase tracking-wider ${
+                    activeCpId === cp.id
+                      ? "bg-primary/15 border-primary text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {cp.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <h3 className="font-display text-xl font-extrabold uppercase tracking-wide text-gold mb-2">

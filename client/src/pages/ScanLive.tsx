@@ -194,7 +194,10 @@ export default function ScanLive() {
 
     const sessions = existingSessions || [];
     const doneCount = sessions.length;
-    const cpIdx = Math.min(doneCount, CHECKPOINTS.length - 1);
+    const storedCpId = sessionStorage.getItem("chaincheck-checkpoint");
+    const cpIdx = storedCpId
+      ? Math.max(0, CHECKPOINTS.findIndex(c => c.id === storedCpId))
+      : Math.min(doneCount, CHECKPOINTS.length - 1);
     const cp = CHECKPOINTS[cpIdx];
     const programWeek = clientProfile?.startDate
       ? Math.max(0, Math.min(16, Math.floor((Date.now() - new Date(clientProfile.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000))))
