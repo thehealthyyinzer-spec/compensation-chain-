@@ -113,7 +113,11 @@ interface ScanResult {
 interface Finding {
   stepLabel: string;
   metricName: string;
+  metricId: string;
   value: string;
+  rawValue: number;
+  unit: string;
+  norm: string; // e.g. "Ideal < 2°"
   level: "good" | "warn" | "bad";
 }
 
@@ -597,7 +601,17 @@ export default function FreeScan() {
         const level: "good" | "warn" | "bad" = mag >= bad ? "bad" : mag >= warn ? "warn" : "good";
         if (level !== "good") regionScores[m.region] = (regionScores[m.region] || 0) + (level === "bad" ? 2 : 1);
         const display = m.unit === "%" ? Math.round(mag) + "%" : m.unit === "°" ? mag.toFixed(1) + "°" : (mag * 100).toFixed(0);
-        foundFindings.push({ stepLabel: step.label, metricName: m.name, value: display, level });
+        // Compute norm label for context
+        const normLabel = (() => {
+          if (m.unit === "°" && m.bad != null) {
+            return m.capacity ? `Norm ≥${m.warn}°` : `Ideal < ${m.warn}°`;
+          }
+          if (m.unit === "%" && m.bad != null) {
+            return m.capacity ? `Norm ≥${m.warn}%` : `Ideal < ${m.warn}%`;
+          }
+          return "";
+        })();
+        foundFindings.push({ stepLabel: step.label, metricName: m.name, metricId: m.id, value: display, rawValue: mag, unit: m.unit || "", norm: normLabel, level });
       });
     });
     const top = Object.entries(regionScores).sort((a, b) => b[1] - a[1])[0];
@@ -845,20 +859,41 @@ export default function FreeScan() {
             </h2>
           </div>
 
-          {/* Findings */}
+          {/* Findings with comparison context */}
           {findings.length > 0 && (
             <div className="space-y-2">
               {findings.map((f, i) => (
-                <div key={i} className="bg-[#1A1F3A] rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold">{f.metricName}</div>
-                    <div className="text-xs text-[#9aa3c0] mt-0.5">{f.stepLabel}</div>
+                <div key={i} className={`bg-[#1A1F3A] rounded-xl px-4 py-3 border-l-2 ${
+                  f.level === "bad" ? "border-[#F87171]" : "border-[#FBBF24]"
+                }`}>
+                  <div className="flex items-start justify-between gap-3 mb-1">
+                    <div>
+                      <div className="text-sm font-semibold">{f.metricName}</div>
+                      <div className="text-xs text-[#9aa3c0]">{f.stepLabel}</div>
+                    </div>
+                    <span className={`font-display text-xs font-bold px-3 py-1 rounded-full tracking-wider flex-shrink-0 ${
+                      f.level === "bad" ? "bg-[#F87171]/15 text-[#F87171]" : "bg-[#FBBF24]/15 text-[#FBBF24]"
+                    }`}>
+                      {f.level === "bad" ? "FLAG" : "WATCH"}
+                    </span>
                   </div>
-                  <span className={`font-display text-xs font-bold px-3 py-1 rounded-full tracking-wider ${
-                    f.level === "bad" ? "bg-bad/15 text-bad" : "bg-warn/15 text-warn"
-                  }`}>
-                    {f.level === "bad" ? "BREAKDOWN" : "WATCH"} · {f.value}
-                  </span>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-[#9aa3c0]">Your reading:</span>
+                      <span className={`text-sm font-bold ${
+                        f.level === "bad" ? "text-[#F87171]" : "text-[#FBBF24]"
+                      }`}>{f.value}</span>
+                    </div>
+                    {f.norm && (
+                      <>
+                        <span className="text-[#4a5178]">vs</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-[#9aa3c0]">Normal:</span>
+                          <span className="text-sm font-bold text-[#34D399]">{f.norm}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
