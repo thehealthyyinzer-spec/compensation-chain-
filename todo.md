@@ -86,3 +86,7 @@
 - [x] Email/name/quiz gate after scan completes
 - [x] Result card with region finding, plain-language copy, and protocol recommendation
 - [x] Book a Call CTA wired to freeChainCheck.submit endpoint
+
+## UI Fixes
+- [x] Free scan camera not showing after Start button — fixed by mounting video/canvas before assigning stream
+- [x] Chain map SVG — rebuilt as dynamic interactive body figure with hover states, region tooltips, glow effects, and status colors

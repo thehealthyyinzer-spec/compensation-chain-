@@ -127,20 +127,6 @@ export default function ClientDashboard() {
               Your Chain Map
             </h3>
             <ChainMap regionStatus={regionStatus} />
-            <div className="flex gap-4 justify-center mt-3 text-xs text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-good" /> Holding strong
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-warn" /> Watch this link
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-bad" /> Chain breakdown
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-muted" /> Not scanned yet
-              </span>
-            </div>
           </div>
 
           <div className="bg-card rounded-xl p-5 border border-border">

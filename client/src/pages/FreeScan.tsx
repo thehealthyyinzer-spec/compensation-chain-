@@ -509,50 +509,66 @@ export default function FreeScan() {
   useEffect(() => { repFlashRef.current = repFlash; }, [repFlash]);
 
   const startScanFinal = async () => {
-    try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
-
-      if (!landmarkerRef.current) {
-        const { PoseLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
-        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-        landmarkerRef.current = await PoseLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-            delegate: "GPU",
-          },
-          runningMode: "VIDEO",
-          numPoses: 1,
-        });
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 960, height: 720, facingMode: "user" }, audio: false });
-      const video = videoRef.current!;
-      video.srcObject = stream;
-      await new Promise((r) => { video.onloadedmetadata = r; });
-      const canvas = canvasRef.current!;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      scanResultsRef.current = [];
-      smoothRef.current = {};
-      runningRef.current = true;
-
-      const step = FREE_STEPS[0];
-      setStepIndex(0);
-      stepIndexRef.current = 0;
-      setInstruction(step.instruction || "");
-      setMovePill(`1 / ${FREE_STEPS.length} · ${step.label}`);
-      setHoldProgress(null);
-      capRef.current = { mode: "hold", holdStart: null, samples: [], lastHipX: null };
-      setPhase("scanning");
-      requestAnimationFrame(loopWithStep);
-    } catch (e) {
-      setStatus("Camera error — allow access (HTTPS required)");
-    }
+    // First switch to scanning phase so video/canvas refs mount in the DOM
+    const step = FREE_STEPS[0];
+    setStepIndex(0);
+    stepIndexRef.current = 0;
+    setInstruction(step.instruction || "");
+    setMovePill(`1 / ${FREE_STEPS.length} · ${step.label}`);
+    setHoldProgress(null);
+    capRef.current = { mode: "hold", holdStart: null, samples: [], lastHipX: null };
+    scanResultsRef.current = [];
+    smoothRef.current = {};
+    setStatus("Loading scanner...");
+    setPhase("scanning");
+    // Camera init happens in useEffect after phase change mounts the video element
   };
+
+  // Start camera after scanning phase mounts video/canvas
+  useEffect(() => {
+    if (phase !== "scanning") return;
+    const initCamera = async () => {
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+
+        if (!landmarkerRef.current) {
+          const { PoseLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
+          const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+          landmarkerRef.current = await PoseLandmarker.createFromOptions(vision, {
+            baseOptions: {
+              modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+              delegate: "GPU",
+            },
+            runningMode: "VIDEO",
+            numPoses: 1,
+          });
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 960, height: 720, facingMode: "user" }, audio: false });
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await new Promise((r) => { video.onloadedmetadata = r; });
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        runningRef.current = true;
+        setStatus("Get into position");
+        requestAnimationFrame(loopWithStep);
+      } catch (e) {
+        setStatus("Camera error — allow access (HTTPS required)");
+      }
+    };
+    initCamera();
+    return () => {
+      runningRef.current = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const handleGateSubmit = async () => {
     if (!firstName.trim() || !email.trim() || !lane) return;
