@@ -305,12 +305,28 @@ export default function ScanResults() {
                 disabled={!feedback.trim() || submitFeedback.isPending}
                 className="font-display uppercase tracking-wider font-bold"
               >
-                {submitFeedback.isPending ? "Sending..." : "Send to Coach Nick"}
+                {submitFeedback.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" strokeOpacity="0.3" />
+                      <path d="M12 2a10 10 0 0 1 10 10" />
+                    </svg>
+                    Sending...
+                  </span>
+                ) : "Send to Coach Nick"}
               </Button>
             </div>
           ) : (
-            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-              <p className="text-primary font-semibold text-sm">Sent. Coach Nick will review this with your scan data.</p>
+            <div className="bg-good/10 border border-good/30 rounded-xl p-4 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-good/15 border border-good/40 flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-good font-bold text-sm font-display uppercase tracking-wider">Sent to Coach Nick</p>
+                <p className="text-muted-foreground text-xs mt-0.5">He'll review this with your scan data before your next session.</p>
+              </div>
             </div>
           )}
         </div>

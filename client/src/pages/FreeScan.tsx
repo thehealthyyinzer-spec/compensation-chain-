@@ -142,6 +142,7 @@ export default function FreeScan() {
   const [email, setEmail] = useState("");
   const [lane, setLane] = useState<"rebuild" | "restart" | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // Result state
   const [resultRegion, setResultRegion] = useState<string>("none");
@@ -588,7 +589,9 @@ export default function FreeScan() {
     setResultRegion(region);
     setFindings(foundFindings.filter((f) => f.level !== "good").sort((a, b) => (b.level === "bad" ? 1 : 0) - (a.level === "bad" ? 1 : 0)).slice(0, 5));
     setSubmitting(false);
-    setPhase("result");
+    setSubmitted(true);
+    // Brief success flash before transitioning to result
+    setTimeout(() => setPhase("result"), 1200);
   };
 
   const copy = REGION_COPY[resultRegion] || REGION_COPY.none;
@@ -767,16 +770,39 @@ export default function FreeScan() {
               </div>
             </div>
 
-            <Button
-              onClick={handleGateSubmit}
-              disabled={!firstName.trim() || !email.trim() || !lane || submitting}
-              className="w-full font-display text-xl font-extrabold uppercase tracking-widest py-4 bg-orange hover:bg-orange/90 text-white"
-            >
-              {submitting ? "One sec…" : "Show Me My Result"}
-            </Button>
-            <p className="text-[10px] text-[#7c85a8] leading-relaxed">
-              You'll also get my best rebuilding content by email. No spam. Unsubscribe anytime.
-            </p>
+            {submitted ? (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <div className="w-14 h-14 rounded-full bg-[#34D399]/15 border-2 border-[#34D399] flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <p className="font-display text-lg font-bold uppercase tracking-wider text-[#34D399]">
+                  Got it. Loading your result...
+                </p>
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={handleGateSubmit}
+                  disabled={!firstName.trim() || !email.trim() || !lane || submitting}
+                  className="w-full font-display text-xl font-extrabold uppercase tracking-widest py-4 bg-orange hover:bg-orange/90 text-white"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="10" strokeOpacity="0.3" />
+                        <path d="M12 2a10 10 0 0 1 10 10" />
+                      </svg>
+                      Sending your data...
+                    </span>
+                  ) : "Show Me My Result"}
+                </Button>
+                <p className="text-[10px] text-[#7c85a8] leading-relaxed">
+                  You'll also get my best rebuilding content by email. No spam. Unsubscribe anytime.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
