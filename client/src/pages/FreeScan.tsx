@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { getCitationsForResults } from "@/lib/progressionLogic";
+import ResearchPanel from "@/components/ResearchPanel";
 
 /**
  * Free Chain Check — public lead magnet
@@ -151,6 +153,8 @@ export default function FreeScan() {
   // Result state
   const [resultRegion, setResultRegion] = useState<string>("none");
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [scanCitations, setScanCitations] = useState<ReturnType<typeof getCitationsForResults>>([]);
+  const [showCitations, setShowCitations] = useState(false);
 
   const submitFree = trpc.freeChainCheck.submit.useMutation();
 
@@ -618,6 +622,7 @@ export default function FreeScan() {
     const region = top && top[1] > 0 ? top[0] : "none";
     setResultRegion(region);
     setFindings(foundFindings.filter((f) => f.level !== "good").sort((a, b) => (b.level === "bad" ? 1 : 0) - (a.level === "bad" ? 1 : 0)).slice(0, 5));
+    setScanCitations(getCitationsForResults(scanResultsRef.current as any[]));
     setSubmitting(false);
     setSubmitted(true);
     // Brief success flash before transitioning to result
@@ -918,6 +923,65 @@ export default function FreeScan() {
           <div className="font-display text-base font-bold uppercase tracking-widest text-teal text-center">
             — Coach Nick
           </div>
+
+          {/* Research Citations */}
+          {scanCitations.length > 0 && (
+            <div className="rounded-xl border border-[#3a4060] bg-[#1A1F3A]">
+              <button
+                onClick={() => setShowCitations((v) => !v)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-[#00B4D8]/10 border border-[#00B4D8]/30 flex items-center justify-center flex-shrink-0">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00B4D8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-display text-sm font-extrabold uppercase tracking-wider text-[#F8F6F0]">
+                      Research Behind This Assessment
+                    </div>
+                    <div className="text-xs text-[#9aa3c0] mt-0.5">
+                      {scanCitations.length} peer-reviewed {scanCitations.length === 1 ? "source" : "sources"} · We don't make this up
+                    </div>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9aa3c0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  className={`transition-transform duration-200 flex-shrink-0 ${showCitations ? "rotate-180" : ""}`}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {showCitations && (
+                <div className="px-5 pb-5 space-y-3 border-t border-[#3a4060] pt-4">
+                  <p className="text-xs text-[#9aa3c0] leading-relaxed">
+                    The thresholds and chain patterns in this assessment are grounded in peer-reviewed biomechanics research. These are the studies behind what you're seeing.
+                  </p>
+                  {scanCitations.map((c) => (
+                    <div key={c.id} className="bg-[#2A3050] rounded-xl p-4 border border-[#3a4060]">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="font-display text-xs font-bold uppercase tracking-wider text-[#00B4D8]">
+                          {c.journal} · {c.year}
+                        </div>
+                        {(c.doi || c.pmcid) && (
+                          <a href={c.pmcid ? `https://pmc.ncbi.nlm.nih.gov/articles/${c.pmcid}/` : `https://doi.org/${c.doi}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="text-[10px] text-[#00B4D8] hover:underline flex-shrink-0 font-semibold">
+                            View →
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-xs font-semibold text-[#F8F6F0] mb-1 leading-snug">{c.title}</p>
+                      <p className="text-[10px] text-[#9aa3c0] mb-2">{c.authors}</p>
+                      <div className="bg-[#1A1F3A] border border-[#3a4060] rounded-lg px-3 py-2">
+                        <p className="text-xs text-[#c8cee6] leading-relaxed italic">"{c.finding}"</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

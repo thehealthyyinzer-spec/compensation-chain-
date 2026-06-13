@@ -90,3 +90,7 @@
 ## UI Fixes
 - [x] Free scan camera not showing after Start button — fixed by mounting video/canvas before assigning stream
 - [x] Chain map SVG — rebuilt as dynamic interactive body figure with hover states, region tooltips, glow effects, and status colors
+
+## Evidence-Based Upgrades
+- [x] Upgrade progressionLogic.ts with peer-reviewed clinical thresholds and citation metadata
+- [x] Add research citations panel to ScanResults page (paid) and FreeScan result screen (free)

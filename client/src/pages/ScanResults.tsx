@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { MOVES, allMetrics, metricLevel, fmt, BENCHMARKS, REGION_ORDER, REGION_LABELS, BODY_REGIONS } from "@/lib/moveLibrary";
 import { computeRegionStatus } from "@/lib/scanUtils";
-import { getSingleSessionProtocol } from "@/lib/progressionLogic";
+import { getSingleSessionProtocol, getCitationsForResults } from "@/lib/progressionLogic";
+import ResearchPanel from "@/components/ResearchPanel";
 import { toast } from "sonner";
 
 export default function ScanResults() {
@@ -92,8 +93,9 @@ export default function ScanResults() {
     return worst as { m: any; v: number; mvName: string; reg: string } | null;
   })();
 
-  // Single-session protocol suggestion
+  // Single-session protocol suggestion with citations
   const suggestedProtocol = getSingleSessionProtocol(results);
+  const scanCitations = getCitationsForResults(results);
 
   const PLAIN_LANGUAGE: Record<string, (v: string, age: number) => string> = {
     shinAngle: (v, age) => `Your ankle mobility reads ${v} — the norm for your age group is ≥${age <= 40 ? 40 : age <= 50 ? 38 : 32}°. Limited dorsiflexion affects your squat, stairs, and walking gait. When ankles can't absorb load, it travels up the chain to your knees and hips.`,
@@ -269,6 +271,14 @@ export default function ScanResults() {
                 <p className="text-sm font-bold text-foreground mb-0.5">{suggestedProtocol.title}</p>
                 <p className="text-xs text-muted-foreground italic leading-relaxed">"{suggestedProtocol.cue}"</p>
               </div>
+              {(suggestedProtocol as any).clinicalBasis && (
+                <div className="bg-background rounded-lg px-3 py-2 border border-border">
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground">Evidence basis: </span>
+                    {(suggestedProtocol as any).clinicalBasis}
+                  </p>
+                </div>
+              )}
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Focus block:</p>
                 <ul className="space-y-1">
@@ -330,6 +340,9 @@ export default function ScanResults() {
             </div>
           )}
         </div>
+
+        {/* Research Citations */}
+        <ResearchPanel citations={scanCitations} />
 
         {/* Navigation */}
         <div className="flex gap-3 flex-wrap">
