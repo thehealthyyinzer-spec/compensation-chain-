@@ -80,3 +80,9 @@
 - [x] Progression logic engine — detect persistent patterns after Week 4+, surface activation protocol suggestions
 - [x] Protocol assignment UI on coach dashboard — Nick assigns a protocol from scan result
 - [x] Social proof module — results-based client stories in client dashboard
+
+## Free Scan Lead Magnet (/free-scan)
+- [x] /free-scan public page — 3-movement scan (Standing, Squat, Split Squat), no login
+- [x] Email/name/quiz gate after scan completes
+- [x] Result card with region finding, plain-language copy, and protocol recommendation
+- [x] Book a Call CTA wired to freeChainCheck.submit endpoint

@@ -14,6 +14,7 @@ import ScanResults from "./pages/ScanResults";
 import SessionHistory from "./pages/SessionHistory";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachClientView from "./pages/CoachClientView";
+import FreeScan from "./pages/FreeScan";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/history" component={SessionHistory} />
       <Route path="/coach" component={CoachDashboard} />
       <Route path="/coach/client/:clientId" component={CoachClientView} />
+      <Route path="/free-scan" component={FreeScan} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
