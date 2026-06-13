@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
  * No login required. Gate after scan. Result card + Book a Call CTA.
  */
 
-const BOOKING_URL = "https://thehealthyyinzer.com/free20mincall";
+const BOOKING_URL = "https://calendly.com/thehealthyyinzer/transformation-call-with-nickv";
 
 const EMA_ALPHA = 0.4;
 const SCAN_CONSTANTS = {
