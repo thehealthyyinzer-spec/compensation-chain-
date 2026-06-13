@@ -9,6 +9,7 @@ import * as db from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import { generatePdfHtml } from "./pdf";
+import { ghlUpsertAndTag } from "./ghl";
 
 export const appRouter = router({
   system: systemRouter,
@@ -191,6 +192,19 @@ export const appRouter = router({
           content: `${client.name} (${client.program}) completed their ${input.checkpoint} scan at week ${input.week}. ${input.isBaseline ? "This is their baseline." : ""}`,
         }).catch(() => {});
 
+        // Push to GHL CRM via MCP connector
+        if (client.email) {
+          const scanTags = ["scan-complete", `program-${client.program}`];
+          if (input.isBaseline) scanTags.push("baseline-complete");
+          ghlUpsertAndTag({
+            email: client.email,
+            firstName: client.name.split(" ")[0],
+            lastName: client.name.split(" ").slice(1).join(" ") || undefined,
+            source: "chain-check-paid",
+            tags: scanTags,
+          }).catch((e) => console.error("[GHL] Paid scan upsert failed:", e));
+        }
+
         return { success: true, sessionId };
       }),
 
@@ -228,6 +242,16 @@ export const appRouter = router({
           title: `Client Feedback: ${client.name}`,
           content: `${client.name} sent feedback after their ${session?.checkpoint || ""} scan:\n\n${input.feedback}`,
         }).catch(() => {});
+
+        // Push to GHL CRM via MCP connector
+        if (client.email) {
+          ghlUpsertAndTag({
+            email: client.email,
+            firstName: client.name.split(" ")[0],
+            source: "chain-check-feedback",
+            tags: ["scan-feedback-received"],
+          }).catch((e) => console.error("[GHL] Feedback upsert failed:", e));
+        }
 
         return { success: true };
       }),
@@ -404,26 +428,13 @@ export const appRouter = router({
           content: `Quiz result: ${input.quizResult}\n\nScan data: ${JSON.stringify(input.scanData, null, 2)}`,
         });
 
-        // Fire GHL webhook if configured (same pattern as paid scans)
-        const ghlUrl = process.env.GHL_WEBHOOK_URL;
-        if (ghlUrl) {
-          try {
-            const payload = {
-              email: input.email,
-              firstName: input.firstName,
-              tags: ["free-chain-check", `quiz-${input.quizResult}`],
-              scanData: input.scanData,
-              source: "free-chain-check-tool",
-            };
-            await fetch(ghlUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-          } catch (e) {
-            console.error("[GHL] Free scan webhook failed:", e);
-          }
-        }
+        // Push to GHL CRM via MCP connector
+        ghlUpsertAndTag({
+          email: input.email,
+          firstName: input.firstName,
+          source: "chain-check-free-scan",
+          tags: ["free-chain-check", `quiz-${input.quizResult}`],
+        }).catch((e) => console.error("[GHL] Free scan upsert failed:", e));
 
         return { success: true };
       }),
