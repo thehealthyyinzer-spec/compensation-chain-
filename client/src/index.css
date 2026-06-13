@@ -184,6 +184,14 @@
   .text-teal { color: oklch(0.72 0.14 200); }
   .text-orange { color: oklch(0.75 0.18 55); }
   .text-gold { color: oklch(0.78 0.14 95); }
+  .bg-teal { background: oklch(0.72 0.14 200); }
+  .bg-orange { background: oklch(0.75 0.18 55); }
+  .bg-gold { background: oklch(0.78 0.14 95); }
+  .hover\:bg-teal\/90:hover { background: oklch(0.72 0.14 200 / 0.9); }
+  .hover\:bg-orange\/90:hover { background: oklch(0.75 0.18 55 / 0.9); }
+  .border-teal { border-color: oklch(0.72 0.14 200); }
+  .border-orange { border-color: oklch(0.75 0.18 55); }
+  .border-gold { border-color: oklch(0.78 0.14 95); }
   .bg-navy { background: oklch(0.16 0.02 265); }
   .bg-navy-light { background: oklch(0.20 0.02 265); }
   .text-good { color: oklch(0.75 0.17 160); }
