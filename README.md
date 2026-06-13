@@ -2,9 +2,11 @@
 
 **Built by The Healthy Yinzer · Nick Venuti, Exercise Physiologist**
 
-Chain Check is a full-stack web application for movement screening and coaching. It uses real-time pose detection (MediaPipe) to assess compensation patterns in the kinetic chain — starting at the ankles, tracing upward through the knees, hips, core, and shoulders. Every threshold, chain pattern, and protocol recommendation is grounded in peer-reviewed biomechanics research.
+Chain Check is a full-stack web application for movement screening and coaching. It uses real-time pose detection (MediaPipe) to assess compensation patterns in the kinetic chain. Dysfunction can enter the chain at any joint — ankles, knees, hips, shoulders, wherever. The framework is always: **where does YOUR chain break down?** Pain rarely stays where it started. That's the concept.
 
-> "The ankle is the foundation. Until it moves, the knee and hip are compensating on every rep."
+Every threshold, chain pattern, and protocol recommendation is grounded in peer-reviewed biomechanics research.
+
+> "Pain rarely stays where it started. We work the pattern, not the symptom."
 > — Coach Nick
 
 ---
@@ -170,7 +172,7 @@ Integration uses the HighLevel MCP connector via `manus-mcp-cli`. No webhook URL
 
 Built by [The Healthy Yinzer](https://thehealthyyinzer.com) — Nick Venuti, Exercise Physiologist, Pittsburgh PA.
 
-The Compensation Chain framework traces dysfunction upward from the ankles. Pain rarely stays where it started. We work the pattern, not the symptom.
+The Compensation Chain framework asks one question: where does YOUR chain break down? Dysfunction can enter at any joint. Pain rarely stays where it started. We work the pattern, not the symptom.
 
 ---
 

@@ -100,7 +100,7 @@ export function generateCoachNote(
   const CHAIN_PATTERNS = [
     {
       condition: (flags: string[]) => flags.some(f => f.includes("ankle")) && flags.some(f => f.includes("knee")),
-      message: "Your ankles aren't absorbing the load they're designed to — so your knees are picking it up. That's the Compensation Chain. We fix the ankle, the knee follows."
+      message: "Your ankle restriction is driving compensation up the chain — your knees are picking up load they weren't designed to carry. That's where your chain breaks down. We address it here."
     },
     {
       condition: (flags: string[]) => flags.some(f => f.includes("hip")) && flags.some(f => f.includes("knee")),

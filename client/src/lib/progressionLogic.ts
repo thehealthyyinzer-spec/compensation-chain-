@@ -4,7 +4,9 @@
  * All clinical thresholds and chain patterns are grounded in peer-reviewed literature.
  * Citations are embedded per pattern and surfaced in the app UI.
  *
- * Compensation Chain always starts at the ankles. Always.
+ * Dysfunction can enter the chain at any joint — ankles, knees, hips, shoulders, wherever.
+ * The framework is always: "where does YOUR chain break down?"
+ * Pain rarely stays where it started. That's the concept.
  * — Nick Venuti, The Healthy Yinzer
  */
 
@@ -145,7 +147,7 @@ export const PROTOCOLS: Record<string, Protocol> = {
       "Calf raise with full range pause at top — 3×12",
       "Banded ankle distraction stretch — 60s each side",
     ],
-    cue: "The ankle is the foundation. Until it moves, the knee and hip are compensating on every rep. Research shows every degree of ankle restriction translates directly to altered knee and hip mechanics.",
+    cue: "When ankle restriction is present, the knee and hip compensate on every rep. Research shows every degree of dorsiflexion restriction translates directly to altered knee and hip mechanics. Your chain breaks down here — we address it here.",
     priority: "high",
     citationIds: ["taylor2021", "rabin2016", "lima2018", "vicenzino2010"],
   },
@@ -245,7 +247,7 @@ const PATTERN_RULES: PatternRule[] = [
   {
     id: "ankle_knee_chain",
     label: "Ankle restriction driving knee compensation",
-    chainDescription: "Your ankles can't absorb the load they're designed to — so your knees are picking it up. That's the Compensation Chain. We fix the ankle, the knee follows.",
+    chainDescription: "Your ankle restriction is driving compensation up the chain — your knees are picking up load they weren't designed to carry. That's where your chain breaks down. We address it here.",
     clinicalBasis: "Every 1° of ankle dorsiflexion restriction is associated with a 1.2° decrease in peak knee flexion and increased dynamic knee valgus (Taylor et al. 2021; Lima et al. 2018).",
     citationIds: ["taylor2021", "lima2018", "rabin2016"],
     detect: (results) => {
