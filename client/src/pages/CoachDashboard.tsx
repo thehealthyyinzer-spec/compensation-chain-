@@ -95,14 +95,14 @@ export default function CoachDashboard() {
   // Magic link sender
   const sendMagicLink = trpc.magicLink.sendToClient.useMutation({
     onSuccess: (data) => {
-      // Copy the login URL to clipboard and show toast
+      // Copy as backup and show confirmation
       navigator.clipboard?.writeText(data.loginUrl).catch(() => {});
-      toast.success("Login link copied to clipboard.", {
-        description: data.loginUrl,
-        duration: 8000,
+      toast.success("Login link sent via email.", {
+        description: "Also copied to clipboard as backup.",
+        duration: 6000,
       });
     },
-    onError: () => toast.error("Failed to generate link."),
+    onError: () => toast.error("Failed to send link."),
   });
 
   if (authLoading || isLoading) {

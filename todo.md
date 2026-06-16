@@ -94,3 +94,6 @@
 ## Evidence-Based Upgrades
 - [x] Upgrade progressionLogic.ts with peer-reviewed clinical thresholds and citation metadata
 - [x] Add research citations panel to ScanResults page (paid) and FreeScan result screen (free)
+
+## GHL Email Integration
+- [x] Auto-send magic link via GHL email when coach hits "Send Link" on dashboard

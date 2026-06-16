@@ -9,7 +9,7 @@ import * as db from "./db";
 import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import { generatePdfHtml } from "./pdf";
-import { ghlUpsertAndTag } from "./ghl";
+import { ghlUpsertAndTag, ghlSendMagicLinkEmail } from "./ghl";
 
 export const appRouter = router({
   system: systemRouter,
@@ -50,10 +50,18 @@ export const appRouter = router({
 
         const loginUrl = `${input.origin}/verify?token=${token}`;
 
-        // Notify owner with the link (so it can be forwarded or sent via GHL)
+        // Look up client name for the email
+        const clientRecord = await db.getClientByEmail(input.email);
+        const firstName = clientRecord?.name?.split(" ")[0] || "there";
+
+        // Send the magic link via GHL email (fires async, doesn't block response)
+        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+          .catch((e) => console.error("[GHL] Magic link email failed:", e));
+
+        // Also notify owner
         await notifyOwner({
-          title: `Magic link generated for ${input.email}`,
-          content: `Login link (expires in 24h):\n${loginUrl}`,
+          title: `Magic link sent to ${input.email}`,
+          content: `Login link sent via GHL email (expires in 24h):\n${loginUrl}`,
         });
 
         return { success: true, loginUrl, token };
