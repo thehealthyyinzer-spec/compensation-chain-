@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 
 export default function Login() {
   const [mode, setMode] = useState<"register" | "returning">("register");
@@ -146,16 +145,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* Coach login */}
-        <div className="mt-8 pt-6 border-t border-border text-center">
-          <p className="text-muted-foreground text-xs mb-3">Coach Nick?</p>
-          <a
-            href={getLoginUrl()}
-            className="text-primary text-sm font-semibold hover:underline"
-          >
-            Sign in with Manus →
-          </a>
-        </div>
+
       </div>
     </div>
   );
