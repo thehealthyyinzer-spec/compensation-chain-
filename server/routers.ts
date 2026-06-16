@@ -88,7 +88,7 @@ export const appRouter = router({
           content: `${input.name} (${input.email}) just signed up for Chain Check beta access.`,
         }).catch(() => {});
 
-        return { success: true };
+        return { success: true, loginUrl };
       }),
 
     // Admin sends a magic link directly to a client's email

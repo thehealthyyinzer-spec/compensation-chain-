@@ -14,9 +14,14 @@ export default function Login() {
   const [, navigate] = useLocation();
   const { isAuthenticated, user } = useAuth();
 
+  const [loginUrl, setLoginUrl] = useState("");
+
   // Self-register mutation — creates account + sends magic link
   const selfRegister = trpc.magicLink.selfRegister.useMutation({
-    onSuccess: () => setSent(true),
+    onSuccess: (data) => {
+      if (data.loginUrl) setLoginUrl(data.loginUrl);
+      setSent(true);
+    },
     onError: (err) => setError(err.message),
   });
 
@@ -131,16 +136,27 @@ export default function Login() {
               </svg>
             </div>
             <div>
-              <p className="font-display text-lg font-bold uppercase tracking-wider text-good">Link sent.</p>
+              <p className="font-display text-lg font-bold uppercase tracking-wider text-good">You're in.</p>
               <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
-                Check your email and click the login link. It expires in 24 hours.
+                Click the button below to open your dashboard.
               </p>
             </div>
+            {loginUrl && (
+              <a
+                href={loginUrl}
+                className="block w-full py-3.5 rounded-xl font-display text-lg font-extrabold uppercase tracking-wider text-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Open My Dashboard
+              </a>
+            )}
+            <p className="text-xs text-muted-foreground">
+              A login link was also sent to your email as a backup.
+            </p>
             <button
-              onClick={() => { setSent(false); setError(""); }}
+              onClick={() => { setSent(false); setLoginUrl(""); setError(""); }}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >
-              Didn't get it? Try again
+              Use a different email
             </button>
           </div>
         )}
