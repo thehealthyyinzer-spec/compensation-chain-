@@ -39,6 +39,58 @@ export const appRouter = router({
         return { success: true, token };
       }),
 
+    // Self-registration — anyone can sign up, auto-creates client account and sends magic link
+    selfRegister: publicProcedure
+      .input(z.object({ name: z.string().min(1), email: z.string().email(), origin: z.string() }))
+      .mutation(async ({ input }) => {
+        // Check if client already exists
+        let clientRecord = await db.getClientByEmail(input.email);
+
+        if (!clientRecord) {
+          // Create user + client account automatically
+          const openId = `magic_${nanoid(16)}`;
+          await db.upsertUser({
+            openId,
+            name: input.name,
+            email: input.email,
+            loginMethod: "magic_link",
+            lastSignedIn: new Date(),
+          });
+          const user = await db.getUserByOpenId(openId);
+          if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+          await db.createClient({
+            userId: user.id,
+            name: input.name,
+            email: input.email,
+            program: "rebuild",
+            startDate: new Date(),
+            ageBracket: 35,
+          });
+          clientRecord = await db.getClientByEmail(input.email);
+        }
+
+        // Generate and send magic link
+        const token = nanoid(48);
+        const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+        await db.createMagicLink(input.email, token, expiresAt);
+
+        const loginUrl = `${input.origin}/verify?token=${token}`;
+        const firstName = input.name.split(" ")[0];
+
+        // Send via GHL email
+        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+          .catch((e) => console.error("[GHL] Self-register email failed:", e));
+
+        // Notify Coach Nick
+        await notifyOwner({
+          title: `New beta tester: ${input.name}`,
+          content: `${input.name} (${input.email}) just signed up for Chain Check beta access.`,
+        }).catch(() => {});
+
+        return { success: true };
+      }),
+
     // Admin sends a magic link directly to a client's email
     sendToClient: adminProcedure
       .input(z.object({ email: z.string().email(), origin: z.string() }))

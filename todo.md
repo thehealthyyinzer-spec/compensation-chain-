@@ -100,3 +100,6 @@
 
 ## Coach Dashboard Additions
 - [x] Free scan submissions view on coach dashboard (name, email, quiz result, date)
+
+## Self-Registration (Temporary Beta Access)
+- [x] Self-registration form on login page — name + email, auto-creates client account and sends magic link email

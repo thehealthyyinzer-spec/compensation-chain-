@@ -7,33 +7,30 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
 export default function Login() {
+  const [mode, setMode] = useState<"register" | "returning">("register");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const [magicUrl, setMagicUrl] = useState("");
   const [error, setError] = useState("");
   const [, navigate] = useLocation();
   const { isAuthenticated, user } = useAuth();
 
-  const requestLink = trpc.magicLink.request.useMutation({
-    onSuccess: (data) => {
-      setSent(true);
-      // In dev/testing, show the link directly
-      const url = `${window.location.origin}/verify?token=${data.token}`;
-      setMagicUrl(url);
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
+  // Self-register mutation — creates account + sends magic link
+  const selfRegister = trpc.magicLink.selfRegister.useMutation({
+    onSuccess: () => setSent(true),
+    onError: (err) => setError(err.message),
   });
 
-  // If already authenticated, redirect
+  // Returning client — just request a new link
+  const requestLink = trpc.magicLink.request.useMutation({
+    onSuccess: () => setSent(true),
+    onError: (err) => setError(err.message),
+  });
+
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "admin") {
-        navigate("/coach");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate(user.role === "admin" ? "/coach" : "/dashboard");
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -42,40 +39,86 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email.trim()) {
-      setError("Enter your email address.");
-      return;
+    if (!email.trim()) { setError("Enter your email address."); return; }
+    if (mode === "register") {
+      if (!name.trim()) { setError("Enter your first name."); return; }
+      selfRegister.mutate({ name: name.trim(), email: email.trim().toLowerCase(), origin: window.location.origin });
+    } else {
+      requestLink.mutate({ email: email.trim().toLowerCase() });
     }
-    requestLink.mutate({ email: email.trim().toLowerCase() });
   };
+
+  const isPending = selfRegister.isPending || requestLink.isPending;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-card rounded-2xl p-8 border border-border">
+
+        {/* Header */}
         <div className="text-center mb-6">
+          <div className="font-display text-2xl font-extrabold tracking-wide uppercase mb-1">
+            THE HEALTHY <span className="text-teal">YINZER</span>
+          </div>
           <h1 className="font-display text-3xl font-extrabold tracking-wide uppercase">
-            Your Chain <span className="text-teal">Dashboard</span>
+            Chain <span className="text-primary">Check</span>
           </h1>
           <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
-            Enter the email Coach Nick has on file for you. We'll send a one-click login link.
+            {mode === "register"
+              ? "Sign up to run your movement assessment. Coach Nick will see your results."
+              : "Enter your email and we'll send a one-click login link."}
           </p>
         </div>
 
+        {/* Mode toggle */}
+        <div className="flex rounded-lg border border-border overflow-hidden mb-6">
+          <button
+            onClick={() => { setMode("register"); setError(""); setSent(false); }}
+            className={`flex-1 py-2.5 text-sm font-display font-bold uppercase tracking-wider transition-colors ${
+              mode === "register" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            New Here
+          </button>
+          <button
+            onClick={() => { setMode("returning"); setError(""); setSent(false); }}
+            className={`flex-1 py-2.5 text-sm font-display font-bold uppercase tracking-wider transition-colors ${
+              mode === "returning" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Returning
+          </button>
+        </div>
+
         {!sent ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {mode === "register" && (
+              <Input
+                type="text"
+                placeholder="First name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="text-center text-lg"
+                autoFocus
+              />
+            )}
             <Input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="text-center text-lg"
+              autoFocus={mode === "returning"}
             />
             <Button
               type="submit"
               className="w-full font-display text-lg font-extrabold uppercase tracking-wider"
-              disabled={requestLink.isPending}
+              disabled={isPending}
             >
-              {requestLink.isPending ? "Sending..." : "Send Login Link"}
+              {isPending
+                ? "Sending..."
+                : mode === "register"
+                ? "Get My Login Link"
+                : "Send Login Link"}
             </Button>
             {error && (
               <p className="text-destructive text-sm text-center">{error}</p>
@@ -83,23 +126,27 @@ export default function Login() {
           </form>
         ) : (
           <div className="text-center space-y-4">
-            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-              <p className="text-primary font-semibold text-sm">Link sent.</p>
-              <p className="text-muted-foreground text-xs mt-1">
-                Check your email and click the login link. It expires in 30 minutes.
+            <div className="w-14 h-14 rounded-full bg-good/15 border-2 border-good flex items-center justify-center mx-auto">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-display text-lg font-bold uppercase tracking-wider text-good">Link sent.</p>
+              <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
+                Check your email and click the login link. It expires in 24 hours.
               </p>
             </div>
-            {magicUrl && (
-              <div className="bg-muted rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1">Dev mode — click to login:</p>
-                <a href={magicUrl} className="text-primary text-xs break-all underline">
-                  {magicUrl}
-                </a>
-              </div>
-            )}
+            <button
+              onClick={() => { setSent(false); setError(""); }}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
+            >
+              Didn't get it? Try again
+            </button>
           </div>
         )}
 
+        {/* Coach login */}
         <div className="mt-8 pt-6 border-t border-border text-center">
           <p className="text-muted-foreground text-xs mb-3">Coach Nick?</p>
           <a
