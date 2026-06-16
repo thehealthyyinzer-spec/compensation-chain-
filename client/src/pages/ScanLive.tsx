@@ -49,8 +49,11 @@ export default function ScanLive() {
   const lastMidHipRef = useRef<{ x: number; y: number } | null>(null);
   const dynRef = useRef<any>(null);
 
-  // Get selected battery from sessionStorage
-  const selectedMoves = JSON.parse(sessionStorage.getItem("chaincheck-battery") || JSON.stringify(FULL_BATTERY));
+  // Get selected battery and checkpoint from URL params (passed from ScanPage)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlMoves = urlParams.get("moves");
+  const urlCpId = urlParams.get("cp");
+  const selectedMoves: string[] = urlMoves ? urlMoves.split(",").filter(Boolean) : [...FULL_BATTERY];
 
   // Initialize audio context
   const initAudio = useCallback(() => {
@@ -199,9 +202,8 @@ export default function ScanLive() {
 
     const sessions = existingSessions || [];
     const doneCount = sessions.length;
-    const storedCpId = sessionStorage.getItem("chaincheck-checkpoint");
-    const cpIdx = storedCpId
-      ? Math.max(0, CHECKPOINTS.findIndex(c => c.id === storedCpId))
+    const cpIdx = urlCpId
+      ? Math.max(0, CHECKPOINTS.findIndex(c => c.id === urlCpId))
       : Math.min(doneCount, CHECKPOINTS.length - 1);
     const cp = CHECKPOINTS[cpIdx];
     const programWeek = clientProfile?.startDate

@@ -47,9 +47,11 @@ export default function ScanPage() {
   };
 
   const startScan = () => {
-    sessionStorage.setItem("chaincheck-battery", JSON.stringify(selectedMoves));
-    sessionStorage.setItem("chaincheck-checkpoint", activeCpId);
-    navigate("/scan/live");
+    const params = new URLSearchParams({
+      cp: activeCpId,
+      moves: selectedMoves.join(","),
+    });
+    navigate(`/scan/live?${params.toString()}`);
   };
 
   // Pre-scan tutorial screen
@@ -279,8 +281,11 @@ export default function ScanPage() {
           <Button
             onClick={() => {
               if (shouldSkipTutorial) {
-                sessionStorage.setItem("chaincheck-battery", JSON.stringify(selectedMoves));
-                navigate("/scan/live");
+                const params = new URLSearchParams({
+                  cp: activeCpId,
+                  moves: selectedMoves.join(","),
+                });
+                navigate(`/scan/live?${params.toString()}`);
               } else {
                 setShowTutorial(true);
               }
