@@ -12,6 +12,10 @@ export default function ClientDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => navigate("/login"),
+  });
+
   const { data: clientProfile, isLoading: profileLoading } = trpc.clientProfile.me.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -77,6 +81,12 @@ export default function ClientDashboard() {
               {clientProfile.program}
             </span>
           )}
+          <button
+            onClick={() => logout.mutate()}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-transparent hover:border-border"
+          >
+            Sign out
+          </button>
         </div>
       </header>
 

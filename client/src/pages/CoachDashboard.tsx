@@ -65,6 +65,10 @@ export default function CoachDashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => navigate("/login"),
+  });
+
   const { data: clients, isLoading } = trpc.admin.clients.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
@@ -175,6 +179,12 @@ export default function CoachDashboard() {
           >
             + Add Client
           </Button>
+          <button
+            onClick={() => logout.mutate()}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-transparent hover:border-border"
+          >
+            Sign out
+          </button>
         </div>
       </header>
 
