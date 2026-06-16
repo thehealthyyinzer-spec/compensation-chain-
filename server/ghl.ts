@@ -109,6 +109,7 @@ export async function ghlSendMagicLinkEmail(params: {
       body_subject: "Your Chain Check Login Link",
       body_html: html,
       body_message: `Your Chain Check login link: ${params.loginUrl}`,
+      body_emailFrom: "nick@thehealthyyinzer.com",
     });
 
     if (result?.success) {
