@@ -81,6 +81,10 @@ export default function CoachDashboard() {
     },
   });
 
+  // Free scan leads
+  const { data: freeScanLeads } = trpc.admin.freeScanLeads.useQuery();
+  const [showLeads, setShowLeads] = useState(false);
+
   // GHL trigger
   const [triggerClientId, setTriggerClientId] = useState<number | null>(null);
   const [ghlTag, setGhlTag] = useState("");
@@ -219,6 +223,54 @@ export default function CoachDashboard() {
             )}
           </>
         )}
+        {/* Free Scan Leads */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <button
+            onClick={() => setShowLeads((v) => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/30 transition-colors"
+          >
+            <div>
+              <div className="font-display text-base font-extrabold uppercase tracking-wider text-primary">
+                Free Scan Leads
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {freeScanLeads?.length ?? 0} submission{(freeScanLeads?.length ?? 0) !== 1 ? "s" : ""} via /free-scan
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className={`text-muted-foreground transition-transform duration-200 ${showLeads ? "rotate-180" : ""}`}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          {showLeads && (
+            <div className="border-t border-border">
+              {!freeScanLeads || freeScanLeads.length === 0 ? (
+                <div className="px-5 py-4 text-sm text-muted-foreground">No free scan submissions yet.</div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {freeScanLeads.map((lead: any) => (
+                    <div key={lead.id} className="px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <div className="font-semibold text-sm">{lead.firstName}</div>
+                        <div className="text-xs text-muted-foreground">{lead.email}</div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full font-display tracking-wider ${
+                          lead.quizResult === "rebuild" ? "bg-orange/15 text-orange" : "bg-primary/15 text-primary"
+                        }`}>
+                          {lead.quizResult?.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(lead.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add Client Dialog */}

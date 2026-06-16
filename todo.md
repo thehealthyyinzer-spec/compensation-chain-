@@ -97,3 +97,6 @@
 
 ## GHL Email Integration
 - [x] Auto-send magic link via GHL email when coach hits "Send Link" on dashboard
+
+## Coach Dashboard Additions
+- [x] Free scan submissions view on coach dashboard (name, email, quiz result, date)

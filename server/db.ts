@@ -219,3 +219,10 @@ export async function createFreeScanSubmission(data: { email: string; firstName:
     scanData: data.scanData,
   });
 }
+
+export async function getAllFreeScanSubmissions() {
+  const db = await getDb();
+  if (!db) return [];
+  const { desc } = await import("drizzle-orm");
+  return db.select().from(freeScanSubmissions).orderBy(desc(freeScanSubmissions.createdAt)).limit(200);
+}

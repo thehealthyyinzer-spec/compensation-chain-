@@ -398,6 +398,11 @@ export const appRouter = router({
         return { success: true, payload };
       }),
 
+    // Get all free scan submissions (lead magnet)
+    freeScanLeads: adminProcedure.query(async () => {
+      return db.getAllFreeScanSubmissions();
+    }),
+
         // Update client details (admin)
     updateClient: adminProcedure
       .input(z.object({
