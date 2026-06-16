@@ -74,9 +74,13 @@ export async function ghlAddTags(contactId: string, tags: string[]): Promise<boo
   return false;
 }
 
+// GHL email template ID for the Chain Check magic link
+const MAGIC_LINK_TEMPLATE_ID = "6a314a23067939512325405f";
+
 /**
  * Send the magic link login email to a client via GHL.
- * Upserts the contact first to get their GHL contact ID, then sends the email.
+ * Uses the Chain Check Magic Link HTML template stored in GHL.
+ * The login URL is injected directly into the HTML before sending.
  */
 export async function ghlSendMagicLinkEmail(params: {
   email: string;
@@ -96,36 +100,13 @@ export async function ghlSendMagicLinkEmail(params: {
       return false;
     }
 
-    // Send the email
-    const subject = "Your Chain Check Login Link";
-    const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="font-family: -apple-system, sans-serif; background: #f5f5f5; padding: 40px 20px;">
-  <div style="max-width: 520px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-    <div style="background: #1A1F3A; padding: 28px 32px;">
-      <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: white;">
-        THE HEALTHY <span style="color: #00B4D8;">YINZER</span>
-      </div>
-    </div>
-    <div style="padding: 32px;">
-      <h2 style="font-size: 22px; font-weight: 700; color: #1A1F3A; margin: 0 0 12px;">Hey ${params.firstName},</h2>
-      <p style="color: #555; line-height: 1.7; margin: 0 0 24px;">Coach Nick sent you a login link for your Chain Check dashboard. Click the button below to access your movement assessment.</p>
-      <a href="${params.loginUrl}" style="display: inline-block; background: #00B4D8; color: #1A1F3A; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 28px; border-radius: 8px; text-decoration: none;">Open My Dashboard</a>
-      <p style="color: #888; font-size: 12px; margin: 24px 0 0; line-height: 1.6;">This link expires in 24 hours. If you didn't expect this email, you can ignore it.</p>
-    </div>
-    <div style="background: #f9f9f9; padding: 16px 32px; border-top: 1px solid #eee;">
-      <p style="color: #aaa; font-size: 11px; margin: 0;">Chain Check by The Healthy Yinzer &middot; Pittsburgh, PA</p>
-    </div>
-  </div>
-</body>
-</html>`;
+    // Build the branded HTML with the actual login URL injected
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,sans-serif"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 20px"><tr><td align="center"><table width="100%" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden"><tr><td style="background:#1A1F3A;padding:28px 32px"><p style="margin:0;font-family:Arial,sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#ffffff">THE HEALTHY <span style="color:#00B4D8">YINZER</span></p></td></tr><tr><td style="padding:32px"><h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#1A1F3A">Hey ${params.firstName},</h2><p style="margin:0 0 28px;color:#555555;line-height:1.7;font-size:15px">Coach Nick sent you a login link for your Chain Check dashboard. Click the button below to access your movement assessment.</p><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:#00B4D8"><a href="${params.loginUrl}" style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#1A1F3A;text-decoration:none">OPEN MY DASHBOARD</a></td></tr></table><p style="margin:28px 0 0;color:#888888;font-size:12px;line-height:1.6">This link expires in 24 hours. If you did not expect this email, you can ignore it.</p></td></tr><tr><td style="background:#f9f9f9;padding:16px 32px;border-top:1px solid #eeeeee"><p style="margin:0;color:#aaaaaa;font-size:11px">Chain Check by The Healthy Yinzer &middot; Pittsburgh, PA</p></td></tr></table></td></tr></table></body></html>`;
 
     const result = await callMcp("conversations_send-a-new-message", {
       body_type: "Email",
       body_contactId: contactId,
-      body_subject: subject,
+      body_subject: "Your Chain Check Login Link",
       body_html: html,
       body_message: `Your Chain Check login link: ${params.loginUrl}`,
     });
