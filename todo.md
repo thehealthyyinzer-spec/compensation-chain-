@@ -109,3 +109,7 @@
 
 ## Session History
 - [x] Single-session detail view — tap any past checkpoint in history to see exact metrics, chain map, and coach note from that session
+
+## Free Scan Locked Screen Gate
+- [x] FREE vs LOCKED labels on free scan battery — Standing/Squat/Balance FREE, Hip Hinge/Shoulder/Ankle/Full Chain LOCKED with padlock overlay
+- [x] Locked "What this means for your chain" section on free scan results page with Book a Call CTA

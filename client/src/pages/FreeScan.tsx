@@ -657,13 +657,28 @@ export default function FreeScan() {
             <br /><br />
             You'll need room to stand 6–8 feet back from your phone, and space to turn sideways.
           </p>
-          <div className="flex justify-center gap-6 text-sm text-[#9aa3c0]">
-            {FREE_STEPS.map((s, i) => (
-              <div key={s.key} className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-full bg-[#2A3050] flex items-center justify-center font-display font-bold text-sm">{i + 1}</div>
-                <span className="font-display text-xs uppercase tracking-wider">{s.label}</span>
-              </div>
-            ))}
+          {/* FREE vs LOCKED movement grid */}
+          <div className="w-full max-w-md mx-auto">
+            <p className="text-xs text-[#9aa3c0] uppercase tracking-wider font-bold mb-3">What's included in your free preview</p>
+            <div className="grid grid-cols-2 gap-2 text-left">
+              {/* FREE movements */}
+              {["Standing", "Squat", "Single-Leg Balance"].map((name) => (
+                <div key={name} className="flex items-center gap-2 bg-[#00B4D8]/10 border border-[#00B4D8]/30 rounded-lg px-3 py-2">
+                  <span className="text-[#00B4D8] text-xs font-bold font-display uppercase tracking-wider">FREE</span>
+                  <span className="text-[#F8F6F0] text-xs">{name}</span>
+                </div>
+              ))}
+              {/* LOCKED movements */}
+              {["Hip Hinge", "Shoulder Posture", "Ankle Mobility", "Full Chain Score"].map((name) => (
+                <div key={name} className="flex items-center gap-2 bg-[#2A3050] border border-[#3a4060] rounded-lg px-3 py-2 relative overflow-hidden">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <span className="text-[#6b7280] text-xs">{name}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <Button
             onClick={startScanFinal}
@@ -907,6 +922,46 @@ export default function FreeScan() {
           {/* Recommendations */}
           <div className="bg-[#1A1F3A] border-l-[3px] border-orange rounded-r-xl p-5 text-sm leading-relaxed text-[#c8cee6]">
             <div dangerouslySetInnerHTML={{ __html: copy.recs }} />
+          </div>
+
+          {/* LOCKED: What this means for your chain */}
+          <div className="rounded-xl border border-[#3a4060] bg-[#1A1F3A] overflow-hidden">
+            <div className="px-5 py-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span className="font-display text-sm font-extrabold uppercase tracking-wider text-[#F8F6F0]">
+                  What this means for your chain
+                </span>
+              </div>
+              <div className="relative">
+                <div className="text-sm text-[#9aa3c0] leading-relaxed blur-[3px] select-none pointer-events-none">
+                  Your results point to a specific breakdown pattern. The full Chain Check maps exactly which link broke first, what's compensating, and the order you need to rebuild in. That protocol is inside the program.
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-[#3a4060] px-5 py-4 space-y-3">
+              <button
+                onClick={() => window.open(BOOKING_URL, "_blank")}
+                className="w-full py-3.5 rounded-xl font-display text-base font-extrabold uppercase tracking-widest bg-[#F97316] hover:bg-[#F97316]/90 text-white transition-colors"
+              >
+                Book a Free Discovery Call
+              </button>
+              <p className="text-xs text-[#9aa3c0] text-center leading-relaxed">
+                Full access is included in Rebuild and Restart.{" "}
+                <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-[#F8F6F0]">
+                  Book a free 20-min call to find out which is right for you.
+                </a>
+              </p>
+            </div>
           </div>
 
           <div className="bg-[#1A1F3A] rounded-xl p-4 text-xs text-[#8a93b5] leading-relaxed">
