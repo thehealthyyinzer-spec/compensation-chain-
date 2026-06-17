@@ -103,3 +103,6 @@
 
 ## Self-Registration (Temporary Beta Access)
 - [x] Self-registration form on login page — name + email, auto-creates client account and sends magic link email
+
+## Live Scan UX
+- [x] Skip movement button during live scan — lets client skip a movement and move to the next one

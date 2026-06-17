@@ -656,12 +656,20 @@ export default function ScanLive() {
           </div>
         )}
 
-        {/* Bottom overlay: instruction + cancel */}
+        {/* Bottom overlay: instruction + skip + cancel */}
         <div className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-safe pb-4 pt-2 bg-gradient-to-t from-black/80 to-transparent">
-          <p className="text-xs text-white/80 text-center leading-snug mb-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: instruction.replace(/<strong>[^<]*<\/strong>/g, "") }} />
-          <button onClick={handleAbort} className="w-full text-xs text-white/50 hover:text-white/80 transition-colors">
-            Cancel Session
-          </button>
+          <p className="text-xs text-white/80 text-center leading-snug mb-3 line-clamp-2" dangerouslySetInnerHTML={{ __html: instruction.replace(/<strong>[^<]*<\/strong>/g, "") }} />
+          <div className="flex gap-2">
+            <button
+              onClick={nextMove}
+              className="flex-1 py-2 rounded-lg bg-white/10 border border-white/20 text-xs font-bold text-white/80 hover:bg-white/20 transition-colors font-display uppercase tracking-wider"
+            >
+              Skip Movement
+            </button>
+            <button onClick={handleAbort} className="flex-1 py-2 rounded-lg text-xs text-white/40 hover:text-white/70 transition-colors">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -758,9 +766,18 @@ export default function ScanLive() {
         </div>
 
         {/* Abort button */}
-        <Button variant="outline" onClick={handleAbort} className="font-display uppercase tracking-wider font-bold">
-          Cancel Session
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={nextMove}
+            className="font-display uppercase tracking-wider font-bold flex-1"
+          >
+            Skip Movement
+          </Button>
+          <Button variant="outline" onClick={handleAbort} className="font-display uppercase tracking-wider font-bold flex-1">
+            Cancel Session
+          </Button>
+        </div>
       </div>
     </div>
   );
