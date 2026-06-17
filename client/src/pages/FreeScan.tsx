@@ -54,19 +54,16 @@ const FREE_STEPS = [
     ],
   },
   {
-    key: "splitsquat",
-    label: "Split Squat",
-    type: "reps" as const,
-    phases: [
-      { view: "front" as const, reps: 5, instruction: "<strong>Step 3 · Split Squat · part 1 of 2</strong>Face the camera. Step one foot forward into a split stance. 5 reps ... drop down and back up. Move how you naturally move.", hint: "5 facing me…" },
-      { view: "side" as const, reps: 5, instruction: "<strong>Step 3 · Split Squat · part 2 of 2</strong>Turn sideways, same split stance. 5 more reps.", hint: "5 from the side…" },
-    ],
+    key: "balanceL",
+    label: "Balance",
+    type: "hold" as const,
+    holdSec: 8,
+    instruction: "<strong>Step 3 · Single-Leg Balance</strong>Face the camera. Lift one foot off the ground and balance on the other leg for 8 seconds. Arms out if you need them. Then switch sides.",
+    holdHint: "Hold still on one leg…",
     metrics: [
-      { id: "kneeCave", name: "Front knee drift", unit: "", warn: 0.04, bad: 0.08, region: "knees" },
-      { id: "weightShift", name: "Weight shift", unit: "%", warn: 5, bad: 10, region: "hips" },
-      { id: "torsoLean", name: "Forward lean", unit: "°", warn: 30, bad: 45, region: "core" },
-      { id: "depth", name: "Depth reached", unit: "%", info: true, region: "hips" },
-      { id: "fatigueCave", name: "Fatigue: form drift", unit: "", warn: 0.03, bad: 0.06, region: "hips" },
+      { id: "sway", name: "Lateral sway", unit: "%", warn: 3, bad: 6, region: "hips" },
+      { id: "hipDrop", name: "Hip drop", unit: "°", warn: 3, bad: 6, region: "hips" },
+      { id: "swayFatigue", name: "Sway fatigue", unit: "%", warn: 1.5, bad: 3, region: "hips" },
     ],
   },
 ];
