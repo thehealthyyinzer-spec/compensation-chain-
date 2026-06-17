@@ -106,3 +106,6 @@
 
 ## Live Scan UX
 - [x] Skip movement button during live scan — lets client skip a movement and move to the next one
+
+## Session History
+- [x] Single-session detail view — tap any past checkpoint in history to see exact metrics, chain map, and coach note from that session

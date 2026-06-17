@@ -4,13 +4,15 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { MOVES, allMetrics, metricLevel, fmt } from "@/lib/moveLibrary";
-import { computeScanStatus, computeTrend } from "@/lib/scanUtils";
+import { MOVES, allMetrics, metricLevel, fmt, REGION_LABELS } from "@/lib/moveLibrary";
+import { computeScanStatus, computeTrend, computeRegionStatus } from "@/lib/scanUtils";
+import ChainMap from "@/components/ChainMap";
 
 export default function SessionHistory() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [compareSel, setCompareSel] = useState<number[]>([]);
+  const [selectedSession, setSelectedSession] = useState<number | null>(null);
 
   const { data: sessions, isLoading } = trpc.scan.mySessions.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -152,7 +154,7 @@ export default function SessionHistory() {
               Your Sessions
             </h3>
             <p className="text-xs text-muted-foreground mb-3">
-              Tap two sessions to compare them side by side.
+              Tap a session to view full results. Tap two to compare side by side.
             </p>
             <div className="space-y-2">
               {sortedSessions.length === 0 ? (
@@ -161,11 +163,20 @@ export default function SessionHistory() {
                 sortedSessions.map((s, i) => {
                   const d = new Date(s.date);
                   const isSelected = compareSel.includes(i);
+                  const isViewing = selectedSession === i;
                   return (
                     <div
                       key={s.id}
-                      onClick={() => toggleSelect(i)}
+                      onClick={() => {
+                        if (isViewing) {
+                          setSelectedSession(null);
+                        } else {
+                          setSelectedSession(i);
+                          setCompareSel([]);
+                        }
+                      }}
                       className={`flex justify-between items-center rounded-xl p-3 border cursor-pointer transition-all ${
+                        isViewing ? "border-primary bg-primary/10" :
                         isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                       }`}
                     >
@@ -177,7 +188,19 @@ export default function SessionHistory() {
                           {(s.results as any[]).length} movements · {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </div>
                       </div>
-                      {statusPill(s.results as any[])}
+                      <div className="flex items-center gap-2">
+                        {statusPill(s.results as any[])}
+                        {!isViewing && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleSelect(i); }}
+                            className={`text-[10px] px-2 py-0.5 rounded border font-display uppercase tracking-wider transition-colors ${
+                              isSelected ? "border-primary text-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                            }`}
+                          >
+                            Compare
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })
@@ -185,26 +208,89 @@ export default function SessionHistory() {
             </div>
           </div>
 
-          {/* Compare panel */}
+          {/* Detail / Compare panel */}
           <div>
-            {compareSel.length === 2 ? (
+            {selectedSession !== null ? (() => {
+              const s = sortedSessions[selectedSession];
+              if (!s) return null;
+              const results = s.results as any[];
+              const regionStatus = computeRegionStatus(results);
+              const d = new Date(s.date);
+              return (
+                <div className="bg-card rounded-xl p-5 border border-primary/30 space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-display text-xl font-extrabold uppercase tracking-wide text-primary">
+                        {s.checkpoint || `Week ${s.week}`}
+                      </h3>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric", year: "numeric" })} · {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
+                    {statusPill(results)}
+                  </div>
+
+                  {/* Chain map */}
+                  <ChainMap regionStatus={regionStatus} />
+
+                  {/* Coach note */}
+                  {s.note && (
+                    <div className="bg-background border-l-[3px] border-primary rounded-r-xl p-4 text-sm leading-relaxed text-muted-foreground">
+                      <div dangerouslySetInnerHTML={{ __html: s.note }} />
+                      <span className="font-display text-primary uppercase tracking-wider font-bold text-sm mt-2 block">— Coach Nick</span>
+                    </div>
+                  )}
+
+                  {/* Metrics by movement */}
+                  <div className="space-y-3">
+                    {results.map((r: any) => {
+                      const mv = MOVES[r.key];
+                      if (!mv) return null;
+                      const metrics = allMetrics(mv).filter((m: any) => !m.info && r.vals[m.id] != null);
+                      if (!metrics.length) return null;
+                      return (
+                        <div key={r.key} className="bg-background rounded-xl p-4 border border-border">
+                          <div className="font-display text-sm font-extrabold uppercase tracking-wider mb-2">{mv.name}</div>
+                          <div className="space-y-1.5">
+                            {metrics.map((m: any) => {
+                              const v = r.vals[m.id];
+                              const level = metricLevel(m, v);
+                              const display = fmt(m, v);
+                              return (
+                                <div key={m.id} className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground">{m.name}</span>
+                                  <span className={`font-bold ${
+                                    level === "good" ? "text-good" : level === "warn" ? "text-warn" : "text-bad"
+                                  }`}>{display}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedSession(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Close
+                  </button>
+                </div>
+              );
+            })() : compareSel.length === 2 ? (
               renderCompare()
             ) : compareSel.length === 1 ? (
               <div className="bg-card rounded-xl p-5 border border-border">
-                <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-gold mb-2">
-                  Select one more
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Tap another session to compare side by side.
-                </p>
+                <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-gold mb-2">Select one more</h3>
+                <p className="text-sm text-muted-foreground">Tap Compare on another session to compare side by side.</p>
               </div>
             ) : (
               <div className="bg-card rounded-xl p-5 border border-border">
-                <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-gold mb-2">
-                  Compare
-                </h3>
+                <h3 className="font-display text-lg font-extrabold uppercase tracking-wide text-gold mb-2">Your Results</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Select two sessions on the left. You'll see every shared metric with a trend arrow ... green means the chain is clearing, red means a link needs attention.
+                  Tap any session on the left to see the full results from that checkpoint — exact numbers, chain map, and coach note. Hit Compare on two sessions to see what's clearing and what's not.
                 </p>
               </div>
             )}
