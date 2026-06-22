@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
@@ -69,6 +69,13 @@ export default function CoachDashboard() {
     onSuccess: () => navigate("/login"),
   });
 
+  // Redirect non-admins in useEffect to avoid setState-during-render warning
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || user?.role !== "admin")) {
+      navigate("/login");
+    }
+  }, [authLoading, isAuthenticated, user, navigate]);
+
   const { data: clients, isLoading } = trpc.admin.clients.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
@@ -86,7 +93,9 @@ export default function CoachDashboard() {
   });
 
   // Free scan leads
-  const { data: freeScanLeads } = trpc.admin.freeScanLeads.useQuery();
+  const { data: freeScanLeads } = trpc.admin.freeScanLeads.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
   const [showLeads, setShowLeads] = useState(false);
 
   // GHL trigger
@@ -122,7 +131,6 @@ export default function CoachDashboard() {
   }
 
   if (!isAuthenticated || user?.role !== "admin") {
-    navigate("/login");
     return null;
   }
 
