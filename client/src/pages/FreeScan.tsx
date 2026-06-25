@@ -136,9 +136,11 @@ export default function FreeScan() {
   const [holdLabel, setHoldLabel] = useState("");
   const [instruction, setInstruction] = useState("");
   const [repFlash, setRepFlash] = useState(false);
+  const [setupCountdown, setSetupCountdown] = useState<number | null>(null);
 
   const scanResultsRef = useRef<ScanResult[]>([]);
   const capRef = useRef<any>(null);
+  const setupStartRef = useRef<number | null>(null);
 
   // Gate form state
   const [firstName, setFirstName] = useState("");
@@ -319,7 +321,20 @@ export default function FreeScan() {
       headLean: ema("headLean", vals.headLean),
       weightShift: ema("weightShift", vals.weightShift),
     };
+    const SETUP_DELAY = 3;
     if (stable) {
+      // Phase 1: Setup countdown (3 seconds before capture)
+      if (!setupStartRef.current) setupStartRef.current = now;
+      const setupElapsed = (now - setupStartRef.current) / 1000;
+      const setupRemain = Math.max(SETUP_DELAY - setupElapsed, 0);
+      if (setupRemain > 0) {
+        setSetupCountdown(Math.ceil(setupRemain));
+        setStatus(`Get ready… ${Math.ceil(setupRemain)}`);
+        setHoldProgress(null);
+        return false;
+      }
+      // Phase 2: Actual capture
+      setSetupCountdown(null);
       if (!cap.holdStart) { cap.holdStart = now; cap.samples = []; }
       cap.samples.push(s);
       const elapsed = (now - cap.holdStart) / 1000;
@@ -331,8 +346,10 @@ export default function FreeScan() {
       return true;
     } else {
       cap.holdStart = null;
+      setupStartRef.current = null;
+      setSetupCountdown(null);
       setHoldProgress(null);
-      setStatus("Hold still to start the 5-second capture");
+      setStatus("Hold still to start the countdown");
       return false;
     }
   }, [ema, finishHold]);
@@ -726,6 +743,25 @@ export default function FreeScan() {
             </div>
 
             {/* Hold ring */}
+            {/* Setup countdown ring — 3-2-1 before capture */}
+            {setupCountdown !== null && holdProgress === null && (
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="w-28 h-28 relative">
+                  <svg width="112" height="112" className="-rotate-90">
+                    <circle cx="56" cy="56" r="46" stroke="rgba(42,48,80,0.8)" strokeWidth="8" fill="rgba(26,31,58,.85)" />
+                    <circle cx="56" cy="56" r="46" stroke="#E6B84A" strokeWidth="8" fill="none" strokeLinecap="round"
+                      strokeDasharray="289.0"
+                      strokeDashoffset={289.0 * (1 - (3 - setupCountdown + 1) / 3)}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="font-display text-4xl font-extrabold text-[#E6B84A]">{setupCountdown}</span>
+                    <span className="text-[10px] text-white/60 uppercase tracking-wider mt-0.5">get ready</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {holdProgress !== null && (
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                 <div className="w-24 h-24 relative">
