@@ -98,15 +98,15 @@ export default function ScanResults() {
   const scanCitations = getCitationsForResults(results);
 
   const PLAIN_LANGUAGE: Record<string, (v: string, age: number) => string> = {
-    shinAngle: (v, age) => `Your ankle mobility reads ${v} — the norm for your age group is ≥${age <= 40 ? 40 : age <= 50 ? 38 : 32}°. Limited dorsiflexion affects your squat, stairs, and walking gait. When ankles can't absorb load, it travels up the chain to your knees and hips.`,
-    cave: (v) => `Your knees are tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
-    kneeCave: (v) => `Your knees are tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
-    kneeValgusL: (v) => `Your left knee is tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
-    kneeValgusR: (v) => `Your right knee is tracking inward during load. This puts asymmetric stress on the knee joint and is one of the most common drivers of chronic knee pain. It's almost never a knee problem — it starts at the hip or ankle.`,
-    fwdHead: (v) => `Forward head posture reads ${v}. For every inch your head moves forward of your shoulders, it effectively adds 10 lbs of load to your cervical spine. This is recoverable — it's a position problem, not a structural one.`,
-    shoulderRound: (v) => `Rounded shoulders reduce your breathing capacity and load your upper traps chronically. It compounds with forward head and shows up as neck tension, headaches, and reduced overhead reach.`,
-    hipTilt: (v) => `Hip asymmetry of ${v} means one side of your pelvis is carrying more load than the other. Over time this creates predictable compensation patterns in the lower back, the opposite knee, and the IT band.`,
-    weightShift: (v) => `You're loading one leg ${v} more than the other during movement. This often traces back to a previous injury — the nervous system learns to protect the hurt side even after it heals.`,
+    shinAngle: (v, age) => `Your ankle mobility read ${v}. For your selected age range, this is below the screen's target range of about ${age <= 40 ? 40 : age <= 50 ? 38 : 32}°. That does not diagnose a problem, but it does tell us the ankle is worth checking because limited ankle motion can change how the knee and hip share load.`,
+    cave: () => `Your knees appeared to drift inward during loading. That does not mean your knees are damaged. It means the scan noticed a tracking pattern we should connect to hip control, ankle mobility, and how your body handles fatigue.`,
+    kneeCave: () => `Your knees appeared to drift inward during loading. That does not mean your knees are damaged. It means the scan noticed a tracking pattern we should connect to hip control, ankle mobility, and how your body handles fatigue.`,
+    kneeValgusL: () => `Your left knee appeared to drift inward during loading. That is a movement pattern to review, not a diagnosis. The next step is looking at hip control, ankle motion, and whether it matches what you feel day to day.`,
+    kneeValgusR: () => `Your right knee appeared to drift inward during loading. That is a movement pattern to review, not a diagnosis. The next step is looking at hip control, ankle motion, and whether it matches what you feel day to day.`,
+    fwdHead: (v) => `Your head position read ${v} in this screen. Research connects forward head posture with higher neck loading and neck symptoms for some people, but camera position matters here. Treat this as a watch area for posture, breathing, and upper-back control.`,
+    shoulderRound: (v) => `Your shoulder position read ${v}. This can reflect desk posture, upper-back stiffness, breathing mechanics, or how you organize tension. The useful question is whether this pattern matches neck, shoulder, or overhead movement limitations.`,
+    hipTilt: (v) => `Your pelvis showed ${v} of side-to-side difference in this screen. That is not automatically bad, but it can be a clue that one side is taking or avoiding more load. We use it as a starting point for single-leg control and hip stability work.`,
+    weightShift: (v) => `Your scan showed about ${v} of weight shift. That can happen when the body is protecting a side, favoring an old injury, or simply choosing its strongest strategy. The next step is seeing whether that shift repeats across movements and sessions.`,
   };
 
   return (
@@ -124,7 +124,7 @@ export default function ScanResults() {
             Results · {session.checkpoint}
           </h3>
           <p className="text-sm text-muted-foreground mb-3">
-            Select your age so we can show how your numbers compare to peer-reviewed norms.
+            Select your age so we can compare your readings to research-informed screening ranges.
           </p>
           <div className="flex gap-2 flex-wrap">
             {[20, 30, 40, 50, 60].map((age) => (
@@ -271,11 +271,11 @@ export default function ScanResults() {
                 <p className="text-sm font-bold text-foreground mb-0.5">{suggestedProtocol.title}</p>
                 <p className="text-xs text-muted-foreground italic leading-relaxed">"{suggestedProtocol.cue}"</p>
               </div>
-              {(suggestedProtocol as any).clinicalBasis && (
+              {(suggestedProtocol as any).rationale && (
                 <div className="bg-background rounded-lg px-3 py-2 border border-border">
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Evidence basis: </span>
-                    {(suggestedProtocol as any).clinicalBasis}
+                    <span className="font-semibold text-foreground">Why this is the first focus: </span>
+                    {(suggestedProtocol as any).rationale}
                   </p>
                 </div>
               )}

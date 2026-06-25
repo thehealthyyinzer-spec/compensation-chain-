@@ -172,10 +172,25 @@ export async function getSessionById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getSessionByIdForClient(id: number, clientId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(sessions)
+    .where(and(eq(sessions.id, id), eq(sessions.clientId, clientId)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function updateSession(id: number, data: Partial<InsertSession>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(sessions).set(data).where(eq(sessions.id, id));
+}
+
+export async function updateSessionForClient(id: number, clientId: number, data: Partial<InsertSession>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(sessions).set(data).where(and(eq(sessions.id, id), eq(sessions.clientId, clientId)));
 }
 
 export async function getLatestSessionForClient(clientId: number) {

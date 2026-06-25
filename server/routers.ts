@@ -10,6 +10,56 @@ import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import { generatePdfHtml } from "./pdf";
 import { ghlUpsertAndTag, ghlSendMagicLinkEmail } from "./ghl";
+import { ENV } from "./_core/env";
+
+function getHeaderValue(value: string | string[] | undefined): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw?.split(",")[0]?.trim();
+}
+
+function getRequestOrigin(req: { protocol?: string; headers: Record<string, string | string[] | undefined> }): string {
+  if (ENV.publicBaseUrl) return ENV.publicBaseUrl.replace(/\/$/, "");
+
+  if (ENV.isProduction) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "PUBLIC_BASE_URL or APP_URL must be configured to send login links.",
+    });
+  }
+
+  const forwardedHost = getHeaderValue(req.headers["x-forwarded-host"]);
+  const host = forwardedHost || getHeaderValue(req.headers.host);
+  if (!host) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Unable to create login link." });
+  }
+
+  const forwardedProto = getHeaderValue(req.headers["x-forwarded-proto"]);
+  const proto = forwardedProto || req.protocol || "http";
+  return `${proto}://${host}`.replace(/\/$/, "");
+}
+
+function buildLoginUrl(req: { protocol?: string; headers: Record<string, string | string[] | undefined> }, token: string): string {
+  return `${getRequestOrigin(req)}/verify?token=${encodeURIComponent(token)}`;
+}
+
+async function getCurrentClientOrThrow(userId: number) {
+  const client = await db.getClientByUserId(userId);
+  if (!client) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Client profile not found." });
+  }
+  return client;
+}
+
+async function getOwnedSessionOrThrow(userId: number, sessionId: number) {
+  const client = await getCurrentClientOrThrow(userId);
+  const session = await db.getSessionByIdForClient(sessionId, client.id);
+
+  if (!session) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Session not found." });
+  }
+
+  return { client, session };
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -25,42 +75,51 @@ export const appRouter = router({
 
   // ==================== MAGIC LINK AUTH ====================
   magicLink: router({
-    // Request a magic link — returns loginUrl for on-screen display + fires GHL email as backup
+    // Request a magic link. Public flows never return the URL/token to the browser.
     request: publicProcedure
-      .input(z.object({ email: z.string().email(), origin: z.string() }))
-      .mutation(async ({ input }) => {
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        const email = input.email.trim().toLowerCase();
+        const clientRecord = await db.getClientByEmail(email);
+
+        // Avoid account enumeration: return success either way, but only email known clients.
+        if (!clientRecord) {
+          return { success: true, emailSent: true } as const;
+        }
+
         const token = nanoid(48);
         const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
-        await db.createMagicLink(input.email, token, expiresAt);
+        await db.createMagicLink(email, token, expiresAt);
 
-        const loginUrl = `${input.origin}/verify?token=${token}`;
-
-        // Look up client name for the email
-        const clientRecord = await db.getClientByEmail(input.email);
-        const firstName = clientRecord?.name?.split(" ")[0] || "there";
+        const loginUrl = buildLoginUrl(ctx.req, token);
+        const firstName = clientRecord.name?.split(" ")[0] || "there";
 
         // Fire GHL email as backup (async, non-blocking)
-        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+        ghlSendMagicLinkEmail({ email, firstName, loginUrl })
           .catch((e) => console.error("[GHL] Returning client email failed:", e));
 
-        return { success: true, loginUrl };
+        return { success: true, emailSent: true } as const;
       }),
 
-    // Self-registration — anyone can sign up, auto-creates client account and sends magic link
+    // Self-registration — auto-creates a client account and emails a magic link
     selfRegister: publicProcedure
-      .input(z.object({ name: z.string().min(1), email: z.string().email(), origin: z.string() }))
-      .mutation(async ({ input }) => {
-        // Check if client already exists
-        let clientRecord = await db.getClientByEmail(input.email);
+      .input(z.object({ name: z.string().min(1), email: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        const email = input.email.trim().toLowerCase();
+        const name = input.name.trim();
 
-        if (!clientRecord) {
+        // Check if client already exists
+        let clientRecord = await db.getClientByEmail(email);
+        const isNewClient = !clientRecord;
+
+        if (isNewClient) {
           // Create user + client account automatically
           const openId = `magic_${nanoid(16)}`;
           await db.upsertUser({
             openId,
-            name: input.name,
-            email: input.email,
+            name,
+            email,
             loginMethod: "magic_link",
             lastSignedIn: new Date(),
           });
@@ -69,62 +128,65 @@ export const appRouter = router({
 
           await db.createClient({
             userId: user.id,
-            name: input.name,
-            email: input.email,
+            name,
+            email,
             program: "rebuild",
             startDate: new Date(),
             ageBracket: 35,
           });
-          clientRecord = await db.getClientByEmail(input.email);
+          clientRecord = await db.getClientByEmail(email);
         }
 
         // Generate and send magic link
         const token = nanoid(48);
         const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-        await db.createMagicLink(input.email, token, expiresAt);
+        await db.createMagicLink(email, token, expiresAt);
 
-        const loginUrl = `${input.origin}/verify?token=${token}`;
-        const firstName = input.name.split(" ")[0];
+        const loginUrl = buildLoginUrl(ctx.req, token);
+        const firstName = (clientRecord?.name || name).split(" ")[0];
 
         // Send via GHL email
-        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+        ghlSendMagicLinkEmail({ email, firstName, loginUrl })
           .catch((e) => console.error("[GHL] Self-register email failed:", e));
 
         // Notify Coach Nick
         await notifyOwner({
-          title: `New beta tester: ${input.name}`,
-          content: `${input.name} (${input.email}) just signed up for Chain Check beta access.`,
+          title: isNewClient ? `New beta tester: ${name}` : `Login requested: ${email}`,
+          content: isNewClient
+            ? `${name} (${email}) just signed up for Chain Check beta access.`
+            : `A magic link was requested for existing Chain Check client ${email}.`,
         }).catch(() => {});
 
-        return { success: true, loginUrl };
+        return { success: true, emailSent: true } as const;
       }),
 
     // Admin sends a magic link directly to a client's email
     sendToClient: adminProcedure
-      .input(z.object({ email: z.string().email(), origin: z.string() }))
-      .mutation(async ({ input }) => {
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        const email = input.email.trim().toLowerCase();
         const token = nanoid(48);
         const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
-        await db.createMagicLink(input.email, token, expiresAt);
+        await db.createMagicLink(email, token, expiresAt);
 
-        const loginUrl = `${input.origin}/verify?token=${token}`;
+        const loginUrl = buildLoginUrl(ctx.req, token);
 
         // Look up client name for the email
-        const clientRecord = await db.getClientByEmail(input.email);
+        const clientRecord = await db.getClientByEmail(email);
         const firstName = clientRecord?.name?.split(" ")[0] || "there";
 
         // Send the magic link via GHL email (fires async, doesn't block response)
-        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+        ghlSendMagicLinkEmail({ email, firstName, loginUrl })
           .catch((e) => console.error("[GHL] Magic link email failed:", e));
 
         // Also notify owner
         await notifyOwner({
-          title: `Magic link sent to ${input.email}`,
+          title: `Magic link sent to ${email}`,
           content: `Login link sent via GHL email (expires in 24h):\n${loginUrl}`,
         });
 
-        return { success: true, loginUrl, token };
+        return { success: true, loginUrl };
       }),
 
     // Verify a magic link token and create a session
@@ -216,8 +278,7 @@ export const appRouter = router({
         program: z.enum(["rebuild", "restart", "perform"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const client = await db.getClientByUserId(ctx.user.id);
-        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client profile not found." });
+        const client = await getCurrentClientOrThrow(ctx.user.id);
         await db.updateClient(client.id, input);
         return { success: true };
       }),
@@ -240,8 +301,7 @@ export const appRouter = router({
         note: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const client = await db.getClientByUserId(ctx.user.id);
-        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client profile not found." });
+        const client = await getCurrentClientOrThrow(ctx.user.id);
 
         const sessionId = await db.createSession({
           clientId: client.id,
@@ -283,27 +343,23 @@ export const appRouter = router({
         feedback: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const client = await db.getClientByUserId(ctx.user.id);
-        if (!client) throw new TRPCError({ code: "NOT_FOUND" });
+        const { client, session } = await getOwnedSessionOrThrow(ctx.user.id, input.sessionId);
 
-        await db.updateSession(input.sessionId, { clientFeedback: input.feedback });
+        await db.updateSessionForClient(input.sessionId, client.id, { clientFeedback: input.feedback });
 
         // Create webhook log for GHL
-        const session = await db.getSessionById(input.sessionId);
-        if (session) {
-          const payload = {
-            clientName: client.name,
-            email: client.email,
-            program: client.program,
-            checkpoint: session.checkpoint,
-            week: session.week,
-            feedback: input.feedback,
-            results: session.results,
-            note: session.note,
-            date: session.date,
-          };
-          await db.createWebhookLog(input.sessionId, payload);
-        }
+        const payload = {
+          clientName: client.name,
+          email: client.email,
+          program: client.program,
+          checkpoint: session.checkpoint,
+          week: session.week,
+          feedback: input.feedback,
+          results: session.results,
+          note: session.note,
+          date: session.date,
+        };
+        await db.createWebhookLog(input.sessionId, payload);
 
         // Notify Coach Nick
         await notifyOwner({
@@ -326,26 +382,23 @@ export const appRouter = router({
 
     // Get all sessions for current client
     mySessions: protectedProcedure.query(async ({ ctx }) => {
-      const client = await db.getClientByUserId(ctx.user.id);
-      if (!client) return [];
+      const client = await getCurrentClientOrThrow(ctx.user.id);
       return db.getSessionsByClientId(client.id);
     }),
 
     // Get a single session by ID
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return db.getSessionById(input.id);
+      .query(async ({ ctx, input }) => {
+        const { session } = await getOwnedSessionOrThrow(ctx.user.id, input.id);
+        return session;
       }),
 
     // Generate PDF HTML for a session
     getPdf: protectedProcedure
       .input(z.object({ sessionId: z.number() }))
       .query(async ({ ctx, input }) => {
-        const session = await db.getSessionById(input.sessionId);
-        if (!session) throw new TRPCError({ code: "NOT_FOUND" });
-        const client = await db.getClientById(session.clientId);
-        if (!client) throw new TRPCError({ code: "NOT_FOUND" });
+        const { client, session } = await getOwnedSessionOrThrow(ctx.user.id, input.sessionId);
 
         const html = generatePdfHtml({
           clientName: client.name,

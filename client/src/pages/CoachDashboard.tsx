@@ -33,7 +33,7 @@ function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, se
           size="sm"
           className="font-display text-xs uppercase tracking-wider"
           disabled={sendMagicLink?.isPending}
-          onClick={() => sendMagicLink?.mutate({ email: c.email, origin: window.location.origin })}
+          onClick={() => sendMagicLink?.mutate({ email: c.email })}
         >
           {sendMagicLink?.isPending ? "…" : "Send Link"}
         </Button>

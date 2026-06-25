@@ -161,7 +161,7 @@ export function generatePdfHtml(data: PdfSessionData): string {
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#1e3a5f;">
       CHAIN <span style="color:#0891b2;">CHECK</span>
     </div>
-    <div style="font-size:11px;color:#6b7280;margin-top:2px;text-transform:uppercase;letter-spacing:1px;">Movement Assessment</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:2px;text-transform:uppercase;letter-spacing:1px;">Movement Screen</div>
   </div>
   <div style="text-align:right;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#111827;">${data.clientName}</div>
@@ -188,9 +188,9 @@ export function generatePdfHtml(data: PdfSessionData): string {
 
 <!-- Legend -->
 <div style="display:flex;gap:20px;margin-bottom:24px;padding:12px 16px;background:#f9fafb;border-radius:8px;font-size:12px;">
-  <span style="color:#16a34a;font-weight:700;">✓ Good — within normal range</span>
+  <span style="color:#16a34a;font-weight:700;">✓ Good — no watch flag</span>
   <span style="color:#d97706;font-weight:700;">Watch — monitor this pattern</span>
-  <span style="color:#dc2626;font-weight:700;">Flag — compensation detected</span>
+  <span style="color:#dc2626;font-weight:700;">Flag — review this pattern</span>
 </div>
 
 <!-- Footer -->

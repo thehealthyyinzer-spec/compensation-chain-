@@ -100,19 +100,19 @@ export function generateCoachNote(
   const CHAIN_PATTERNS = [
     {
       condition: (flags: string[]) => flags.some(f => f.includes("ankle")) && flags.some(f => f.includes("knee")),
-      message: "Your ankle restriction is driving compensation up the chain — your knees are picking up load they weren't designed to carry. That's where your chain breaks down. We address it here."
+      message: "Your ankle reading and knee tracking showed up together, so this is where I would start the conversation: can we improve the ankle first and make the knee's job easier?"
     },
     {
       condition: (flags: string[]) => flags.some(f => f.includes("hip")) && flags.some(f => f.includes("knee")),
-      message: "Dead glutes push load down to your knees and up to your lower back. The knee isn't the problem — the hip is where the chain breaks."
+      message: "The hip and knee patterns showed up together. That usually tells me to check hip control before we blame the knee."
     },
     {
       condition: (flags: string[]) => flags.some(f => f.includes("shoulder")) && flags.some(f => f.includes("core")),
-      message: "When the core isn't bracing, the shoulders compensate to stabilize. You'll feel it as neck and upper back tension. We build from the center out."
+      message: "The trunk and shoulder readings showed up together. That is a useful clue for how your body is trying to stabilize."
     },
     {
       condition: (flags: string[]) => flags.some(f => f.includes("forward head")) && flags.some(f => f.includes("shoulder")),
-      message: "Forward head and rounded shoulders travel together — that's desk body. One rarely resolves without the other."
+      message: "Forward head and shoulder position often travel together, especially with desk and phone habits. We treat it as a rebuildable position pattern."
     },
   ];
   const flagLabels = flagged.map(f => f.label.toLowerCase());
@@ -121,9 +121,9 @@ export function generateCoachNote(
   if (!prevResults || prevResults.length === 0) {
     lines.push(`${name}, baseline is locked in. This is the reading we measure everything against ... so don't judge it, just own it.`);
     if (flagged.length) {
-      lines.push(`Right now the chain is breaking down at: ${flagged.slice(0, 3).map((f) => `${f.label} (${f.val})`).join(", ")}. That's not bad news. That's the map.`);
+      lines.push(`Right now the screen is pointing us toward: ${flagged.slice(0, 3).map((f) => `${f.label} (${f.val})`).join(", ")}. That's not bad news. That's the map.`);
       if (chainMatch) lines.push(chainMatch.message);
-      lines.push(`Remember ... pain rarely stays where it started. We work the pattern, not the symptom. Activation before load.`);
+      lines.push(`Remember ... this is a screen, not a verdict. We work the pattern, not the fear. Activation before load.`);
     } else {
       lines.push(`Clean baseline across the board. Good. Now we build capacity on top of it ... structure before motivation.`);
     }

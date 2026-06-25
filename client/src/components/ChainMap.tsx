@@ -36,7 +36,7 @@ const REGION_DESCRIPTIONS: Record<string, Record<number, string>> = {
   ankles: {
     0: "Ankle mobility within range. Foundation solid.",
     1: "Limited dorsiflexion. Knees and hips compensating.",
-    2: "Restricted ankle mobility detected. When ankles can't absorb load, it travels up the chain to the knees and hips. This is where your chain breaks down.",
+    2: "Ankle mobility watch area. When the ankle has less motion available, the knees and hips may change strategy.",
   },
 };
 

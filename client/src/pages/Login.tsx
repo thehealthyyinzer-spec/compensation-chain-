@@ -14,21 +14,17 @@ export default function Login() {
   const [, navigate] = useLocation();
   const { isAuthenticated, user } = useAuth();
 
-  const [loginUrl, setLoginUrl] = useState("");
-
   // Self-register mutation — creates account + sends magic link
   const selfRegister = trpc.magicLink.selfRegister.useMutation({
-    onSuccess: (data) => {
-      if (data.loginUrl) setLoginUrl(data.loginUrl);
+    onSuccess: () => {
       setSent(true);
     },
     onError: (err) => setError(err.message),
   });
 
-  // Returning client — request a new link, show button on screen
+  // Returning client — request a new link by email
   const requestLink = trpc.magicLink.request.useMutation({
-    onSuccess: (data) => {
-      if (data.loginUrl) setLoginUrl(data.loginUrl);
+    onSuccess: () => {
       setSent(true);
     },
     onError: (err) => setError(err.message),
@@ -49,9 +45,9 @@ export default function Login() {
     if (!email.trim()) { setError("Enter your email address."); return; }
     if (mode === "register") {
       if (!name.trim()) { setError("Enter your first name."); return; }
-      selfRegister.mutate({ name: name.trim(), email: email.trim().toLowerCase(), origin: window.location.origin });
+      selfRegister.mutate({ name: name.trim(), email: email.trim().toLowerCase() });
     } else {
-      requestLink.mutate({ email: email.trim().toLowerCase(), origin: window.location.origin });
+      requestLink.mutate({ email: email.trim().toLowerCase() });
     }
   };
 
@@ -141,22 +137,14 @@ export default function Login() {
             <div>
               <p className="font-display text-lg font-bold uppercase tracking-wider text-good">You're in.</p>
               <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
-                Click the button below to open your dashboard.
+                Check your email for your secure login link.
               </p>
             </div>
-            {loginUrl && (
-              <a
-                href={loginUrl}
-                className="block w-full py-3.5 rounded-xl font-display text-lg font-extrabold uppercase tracking-wider text-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Open My Dashboard
-              </a>
-            )}
             <p className="text-xs text-muted-foreground">
-              A login link was also sent to your email as a backup.
+              For security, login links only go to the email address you entered.
             </p>
             <button
-              onClick={() => { setSent(false); setLoginUrl(""); setError(""); }}
+              onClick={() => { setSent(false); setError(""); }}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >
               Use a different email
