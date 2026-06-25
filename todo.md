@@ -113,3 +113,10 @@
 ## Free Scan Locked Screen Gate
 - [x] FREE vs LOCKED labels on free scan battery — Standing/Squat/Balance FREE, Hip Hinge/Shoulder/Ankle/Full Chain LOCKED with padlock overlay
 - [x] Locked "What this means for your chain" section on free scan results page with Book a Call CTA
+
+## Scan UX Fixes
+- [x] Add 3-second countdown before hold capture starts — camera on, person gets into position, then 3-2-1 countdown fires before recording begins
+
+## Login Flow Fixes
+- [x] Add 3-second countdown before hold capture starts — 3-2-1 gold ring before recording begins
+- [ ] Returning flow — show Open My Dashboard button on screen after email submit (same as New Here, no email dependency)

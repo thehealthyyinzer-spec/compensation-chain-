@@ -35,6 +35,7 @@ export default function ScanLive() {
   const [instruction, setInstruction] = useState("");
   const [scanProgress, setScanProgress] = useState<{ name: string; state: "done" | "active" | "pending" }[]>([]);
   const [repFlash, setRepFlash] = useState(false); // brief green flash on rep
+  const [setupCountdown, setSetupCountdown] = useState<number | null>(null); // 3-2-1 before hold starts
   // Fullscreen mode — always on for mobile (< 768px), toggleable on desktop
   const [isFullscreen, setIsFullscreen] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
 
@@ -48,6 +49,7 @@ export default function ScanLive() {
   const swayBufRef = useRef<number[]>([]);
   const lastMidHipRef = useRef<{ x: number; y: number } | null>(null);
   const dynRef = useRef<any>(null);
+  const setupStartRef = useRef<number | null>(null); // tracks when stable position was first detected
 
   // Get selected battery and checkpoint from URL params (passed from ScanPage)
   const urlParams = new URLSearchParams(window.location.search);
@@ -298,6 +300,8 @@ export default function ScanLive() {
   const startMove = () => {
     smoothRef.current = {};
     holdStartRef.current = null;
+    setupStartRef.current = null;
+    setSetupCountdown(null);
     holdSamplesRef.current = [];
     swayBufRef.current = [];
     lastMidHipRef.current = null;
@@ -393,8 +397,27 @@ export default function ScanLive() {
     }
     lastMidHipRef.current = { ...vals.midHip };
 
+    const SETUP_DELAY = 3; // seconds to hold position before capture starts
+
     const ready = stable && ph.trigger(vals);
     if (ready) {
+      // Phase 1: Setup countdown (3 seconds to get into position)
+      if (!setupStartRef.current) {
+        setupStartRef.current = now;
+      }
+      const setupElapsed = (now - setupStartRef.current) / 1000;
+      const setupRemain = Math.max(SETUP_DELAY - setupElapsed, 0);
+
+      if (setupRemain > 0) {
+        // Still in setup countdown — show countdown but don't capture yet
+        setSetupCountdown(Math.ceil(setupRemain));
+        setStatus(`Get ready… ${Math.ceil(setupRemain)}`);
+        setHoldProgress(null);
+        return false;
+      }
+
+      // Phase 2: Actual capture
+      setSetupCountdown(null);
       if (!holdStartRef.current) {
         holdStartRef.current = now;
         holdSamplesRef.current = [];
@@ -412,8 +435,11 @@ export default function ScanLive() {
       }
       return true;
     } else {
+      // Not in position — reset both timers
       holdStartRef.current = null;
+      setupStartRef.current = null;
       holdSamplesRef.current = [];
+      setSetupCountdown(null);
       setHoldProgress(null);
       setStatus(ph.trigger(vals) ? "Hold still to start the countdown" : (ph.triggerMsg || "Get into position"));
       return false;
@@ -640,6 +666,25 @@ export default function ScanLive() {
             </button>
           </div>
         </div>
+
+        {/* Setup countdown ring — 3-2-1 before capture */}
+        {setupCountdown !== null && holdProgress === null && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className="w-28 h-28 relative">
+              <svg width="112" height="112" className="-rotate-90">
+                <circle cx="56" cy="56" r="46" stroke="rgba(42,48,80,0.8)" strokeWidth="8" fill="rgba(26,31,58,.85)" />
+                <circle cx="56" cy="56" r="46" stroke="#E6B84A" strokeWidth="8" fill="none" strokeLinecap="round"
+                  strokeDasharray="289.0"
+                  strokeDashoffset={289.0 * (1 - (3 - setupCountdown + 1) / 3)}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-display text-4xl font-extrabold text-[#E6B84A]">{setupCountdown}</span>
+                <span className="text-[10px] text-white/60 uppercase tracking-wider mt-0.5">get ready</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Hold ring centered */}
         {holdProgress !== null && (
