@@ -1,7 +1,7 @@
 /**
  * Progression Logic Engine — Evidence-Based Compensation Chain Detection
  *
- * All clinical thresholds and chain patterns are grounded in peer-reviewed literature.
+ * Screening ranges and chain patterns are informed by biomechanics literature.
  * Citations are embedded per pattern and surfaced in the app UI.
  *
  * Dysfunction can enter the chain at any joint — ankles, knees, hips, shoulders, wherever.
@@ -25,7 +25,7 @@ export interface Citation {
   year: number;
   doi?: string;
   pmcid?: string;
-  finding: string; // one-sentence clinical finding used in the app
+  finding: string; // one-sentence research note used in the app
 }
 
 export const CITATIONS: Citation[] = [
@@ -46,7 +46,7 @@ export const CITATIONS: Citation[] = [
     journal: "Journal of Orthopaedic & Sports Physical Therapy",
     year: 2016,
     doi: "10.2519/jospt.2016.6621",
-    finding: "Individuals with lower ankle dorsiflexion exhibit greater peak hip adduction and knee external rotation — the medial collapse pattern that drives chronic knee pain.",
+    finding: "Individuals with lower ankle dorsiflexion exhibited greater peak hip adduction and knee external rotation during a lateral step-down task.",
   },
   {
     id: "lima2018",
@@ -64,7 +64,7 @@ export const CITATIONS: Citation[] = [
     journal: "International Journal of Sports Physical Therapy",
     year: 2014,
     pmcid: "PMC4060319",
-    finding: "The FMS identifies compensatory movement patterns within the kinetic chain. Asymmetries and compensations predict injury risk and guide corrective programming.",
+    finding: "Functional movement screens can help identify asymmetries and compensatory movement patterns that may guide exercise selection.",
   },
   {
     id: "almansoof2023",
@@ -73,7 +73,7 @@ export const CITATIONS: Citation[] = [
     journal: "PMC",
     year: 2023,
     pmcid: "PMC10893580",
-    finding: "Any blockage or defect in the kinetic chain develops compensatory patterns, high demands on distal parts, and overuse injuries. The chain must be addressed from the ground up.",
+    finding: "Kinetic-chain limitations can shift demand to other regions, which is why movement screens often look beyond the painful area.",
   },
   {
     id: "donati2024",
@@ -82,7 +82,7 @@ export const CITATIONS: Citation[] = [
     journal: "Applied Sciences",
     year: 2024,
     doi: "10.3390/app14209564",
-    finding: "Hip asymmetry (pelvic tilt >5°) is associated with altered knee mechanics and compensatory patterns in the lower back and IT band.",
+    finding: "Pelvic and hip alignment can influence lower-extremity mechanics, which makes hip control useful to review when knee tracking changes.",
   },
   {
     id: "hodel2023",
@@ -91,7 +91,7 @@ export const CITATIONS: Citation[] = [
     journal: "Journal of Orthopaedic Research",
     year: 2023,
     doi: "10.1016/j.orthres.2022.09.027",
-    finding: "Lateral pelvic tilt is directly associated with knee valgus and relative internal rotation at the hip — confirming the hip→knee compensation chain.",
+    finding: "Lateral pelvic tilt has been associated with knee valgus and relative hip rotation, supporting a hip-to-knee screening lens.",
   },
   {
     id: "fhp2020",
@@ -100,7 +100,7 @@ export const CITATIONS: Citation[] = [
     journal: "Current Reviews in Musculoskeletal Medicine",
     year: 2019,
     doi: "10.1007/s12178-019-09594-y",
-    finding: "Forward head posture increases compressive loading on the cervical spine. Each inch of forward head displacement adds approximately 10 lbs of effective load to the cervical structures.",
+    finding: "Forward head posture has been associated with neck symptoms in adults and may increase mechanical demand on the cervical spine.",
   },
   {
     id: "vicenzino2010",
@@ -109,15 +109,7 @@ export const CITATIONS: Citation[] = [
     journal: "Journal of Orthopaedic & Sports Physical Therapy",
     year: 2006,
     doi: "10.2519/jospt.2006.36.7.464",
-    finding: "Weight-bearing dorsiflexion norms: ≥38° is considered functional for most adults. Values below 25° indicate clinically significant restriction affecting squat mechanics.",
-  },
-  {
-    id: "mcbride2026",
-    authors: "McBride JM, et al.",
-    title: "Ankle Dorsiflexion Normative Values and Age-Related Changes",
-    journal: "Journal of Strength and Conditioning Research",
-    year: 2026,
-    finding: "Age-stratified dorsiflexion norms: 20–30 years ≥40°, 31–40 years ≥38°, 41–50 years ≥36°, 51–60 years ≥34°, 60+ years ≥30°.",
+    finding: "Weight-bearing dorsiflexion measures are commonly used as a functional ankle mobility screen.",
   },
 ];
 
@@ -147,7 +139,7 @@ export const PROTOCOLS: Record<string, Protocol> = {
       "Calf raise with full range pause at top — 3×12",
       "Banded ankle distraction stretch — 60s each side",
     ],
-    cue: "When ankle restriction is present, the knee and hip compensate on every rep. Research shows every degree of dorsiflexion restriction translates directly to altered knee and hip mechanics. Your chain breaks down here — we address it here.",
+    cue: "When ankle motion is limited, the knee and hip may have to change strategy. We start here because improving the first available link can make the rest of the movement easier to organize.",
     priority: "high",
     citationIds: ["taylor2021", "rabin2016", "lima2018", "vicenzino2010"],
   },
@@ -162,7 +154,7 @@ export const PROTOCOLS: Record<string, Protocol> = {
       "Single-leg glute bridge — 3×8 each side",
       "Lateral band walk — 2×10 each direction",
     ],
-    cue: "Dead glutes push load to the knees and lower back. The hip→knee chain is well-documented: pelvic asymmetry drives knee valgus. We wake them up before we load them.",
+    cue: "Hip control can influence what the knees and back have to manage. We wake the hips up before we load the pattern.",
     priority: "high",
     citationIds: ["hodel2023", "donati2024", "cook2014"],
   },
@@ -192,7 +184,7 @@ export const PROTOCOLS: Record<string, Protocol> = {
       "Cat-cow with chin tuck — 2×10",
       "Doorway chest stretch — 60s each arm angle",
     ],
-    cue: "Desk body is a position problem, not a structural one. Forward head posture increases cervical spine load — research shows each inch forward adds ~10 lbs of effective load. We restore the range before we load the pattern.",
+    cue: "Desk posture is usually a trainable position and control issue. We restore useful range before loading the pattern.",
     priority: "medium",
     citationIds: ["fhp2020"],
   },
@@ -229,15 +221,15 @@ export const PROTOCOLS: Record<string, Protocol> = {
 };
 
 // ============================================================
-// EVIDENCE-BASED PATTERN DETECTION RULES
-// Thresholds derived from peer-reviewed literature.
+// RESEARCH-INFORMED PATTERN DETECTION RULES
+// These thresholds are screening ranges, not medical cutoffs.
 // ============================================================
 
 interface PatternRule {
   id: string;
   label: string;
   chainDescription: string; // plain-language chain explanation
-  clinicalBasis: string; // one-line evidence summary
+  rationale: string; // one-line research-informed rationale
   citationIds: string[];
   detect: (results: ScanResult[]) => boolean;
   protocolId: string;
@@ -247,11 +239,11 @@ const PATTERN_RULES: PatternRule[] = [
   {
     id: "ankle_knee_chain",
     label: "Ankle restriction driving knee compensation",
-    chainDescription: "Your ankle restriction is driving compensation up the chain — your knees are picking up load they weren't designed to carry. That's where your chain breaks down. We address it here.",
-    clinicalBasis: "Every 1° of ankle dorsiflexion restriction is associated with a 1.2° decrease in peak knee flexion and increased dynamic knee valgus (Taylor et al. 2021; Lima et al. 2018).",
+    chainDescription: "Your ankle mobility may be asking your knees and hips to change strategy. We start here because the ankle is one of the first places load has to move through.",
+    rationale: "Dorsiflexion has been associated with hip and knee mechanics during dynamic loading tasks (Taylor et al. 2021; Lima et al. 2018).",
     citationIds: ["taylor2021", "lima2018", "rabin2016"],
     detect: (results) => {
-      // Evidence threshold: shinAngle < 25° = clinically significant restriction (Vicenzino 2010)
+      // Screening threshold: use this as a coaching flag, not a diagnosis.
       // Combined with any knee cave detection
       const ankleRestricted = hasMetricBelow(results, ["shinAngle"], 25);
       const kneeCave = hasFlag(results, ["kneeCave", "kneeValgusL", "kneeValgusR", "cave"]);
@@ -261,18 +253,18 @@ const PATTERN_RULES: PatternRule[] = [
   },
   {
     id: "ankle_restriction_isolated",
-    label: "Ankle dorsiflexion restriction",
-    chainDescription: "Your ankles are restricting the chain before it even gets to the knee. Restricted dorsiflexion forces compensatory patterns at every joint above it.",
-    clinicalBasis: "Weight-bearing dorsiflexion < 25° is clinically significant and associated with altered lower extremity mechanics (Vicenzino 2010; McBride 2026).",
-    citationIds: ["vicenzino2010", "mcbride2026", "taylor2021"],
+    label: "Ankle mobility watch area",
+    chainDescription: "Your ankle reading suggests this is a useful place to start. If the ankle does not move well, the body may borrow motion from the knee, hip, or back.",
+    rationale: "Weight-bearing dorsiflexion is commonly used as a functional ankle mobility screen and has been tied to lower-extremity movement strategy.",
+    citationIds: ["vicenzino2010", "taylor2021"],
     detect: (results) => hasMetricBelow(results, ["shinAngle"], 25),
     protocolId: "ankle_mobility",
   },
   {
     id: "dead_glute_pattern",
     label: "Dead glute pattern — hip/knee compensation",
-    chainDescription: "Dead glutes push load down to your knees and up to your lower back. The knee isn't the problem — the hip is where the chain breaks.",
-    clinicalBasis: "Lateral pelvic tilt >5° is directly associated with knee valgus and hip internal rotation — the hip→knee compensation chain (Hodel et al. 2023; Donati et al. 2024).",
+    chainDescription: "Your scan suggests the hips may not be giving the knees a steady base. This is where activation-before-load work can be useful.",
+    rationale: "Pelvic and hip mechanics have been associated with knee tracking and lower-extremity movement strategy (Hodel et al. 2023; Donati et al. 2024).",
     citationIds: ["hodel2023", "donati2024", "cook2014"],
     detect: (results) => {
       // Hip tilt > 5° (Donati 2024 threshold) combined with any knee flag
@@ -284,9 +276,9 @@ const PATTERN_RULES: PatternRule[] = [
   },
   {
     id: "balance_deficit",
-    label: "Single-leg stability deficit persisting",
-    chainDescription: "Everything in life happens on one leg. If you can't stabilize it under an 8-second hold, you can't load it under real-world conditions.",
-    clinicalBasis: "Single-leg balance sway >4% of shoulder width indicates clinically meaningful instability. Sway fatigue (increasing sway over hold duration) indicates neuromuscular fatigue under load.",
+    label: "Single-leg stability watch area",
+    chainDescription: "Single-leg control is worth watching because walking, stairs, and most real-life movement spend time on one leg.",
+    rationale: "Single-leg balance and fatigue changes can reveal how well the body controls position under a simple load.",
     citationIds: ["cook2014", "almansoof2023"],
     detect: (results) => hasFlag(results, ["sway", "swayFatigue"]),
     protocolId: "single_leg_stability",
@@ -294,11 +286,11 @@ const PATTERN_RULES: PatternRule[] = [
   {
     id: "desk_body_pattern",
     label: "Forward head + rounded shoulders — desk body",
-    chainDescription: "Forward head and rounded shoulders travel together. One rarely resolves without the other. Research shows forward head posture increases cervical spine load — the further forward, the heavier the effective load.",
-    clinicalBasis: "Forward head posture increases cervical compressive loading. Each inch of forward displacement adds ~10 lbs of effective load to the cervical spine (Mahmoud et al. 2019).",
+    chainDescription: "Forward head and rounded shoulders often show up together, especially for people who sit, drive, or work at screens. We treat this as a position and control pattern to rebuild.",
+    rationale: "Forward head posture has been associated with neck symptoms in adults and may increase mechanical demand on the cervical spine (Mahmoud et al. 2019).",
     citationIds: ["fhp2020"],
     detect: (results) => {
-      // fwdHead > 14° = clinically significant (our bad threshold)
+      // fwdHead > 14° = screen flag threshold.
       const headFlag = hasFlag(results, ["fwdHead"]);
       const shoulderFlag = hasFlag(results, ["shoulderRound"]);
       return headFlag || shoulderFlag;
@@ -308,8 +300,8 @@ const PATTERN_RULES: PatternRule[] = [
   {
     id: "core_instability",
     label: "Core not stabilizing under load",
-    chainDescription: "When the core isn't bracing, the shoulders compensate to stabilize. The trunk is bailing out the lower body. You'll feel it as fatigue in the wrong places.",
-    clinicalBasis: "Trunk lean and weight shift during functional movement indicate inadequate core stabilization, a primary FMS compensation pattern (Cook et al. 2014).",
+    chainDescription: "Your trunk may be shifting to help you complete the movement. We use that as a clue for bracing, balance, and load progression.",
+    rationale: "Trunk lean and weight shift during functional movement can be useful screening clues for movement control (Cook et al. 2014).",
     citationIds: ["cook2014", "almansoof2023"],
     detect: (results) => hasFlag(results, ["torsoLean", "weightShift"]),
     protocolId: "core_bracing",
@@ -362,7 +354,7 @@ export interface ProgressionFlag {
   pattern: string;
   label: string;
   chainDescription: string;
-  clinicalBasis: string;
+  rationale: string;
   sessionCount: number;
   protocol: Protocol;
   citations: Citation[];
@@ -403,7 +395,7 @@ export function detectProgressionFlags(
         pattern: rule.id,
         label: rule.label,
         chainDescription: rule.chainDescription,
-        clinicalBasis: rule.clinicalBasis,
+        rationale: rule.rationale,
         sessionCount: persistCount,
         protocol: PROTOCOLS[rule.protocolId],
         citations: rule.citationIds.map((id) => CITATIONS.find((c) => c.id === id)!).filter(Boolean),
@@ -420,13 +412,13 @@ export function detectProgressionFlags(
  * Get the single most urgent protocol for a single session (no history needed).
  * Used on the results screen immediately after a scan.
  */
-export function getSingleSessionProtocol(results: ScanResult[]): (Protocol & { citations: Citation[]; clinicalBasis: string }) | null {
+export function getSingleSessionProtocol(results: ScanResult[]): (Protocol & { citations: Citation[]; rationale: string }) | null {
   for (const rule of PATTERN_RULES) {
     if (rule.detect(results)) {
       return {
         ...PROTOCOLS[rule.protocolId],
         citations: rule.citationIds.map((id) => CITATIONS.find((c) => c.id === id)!).filter(Boolean),
-        clinicalBasis: rule.clinicalBasis,
+        rationale: rule.rationale,
       };
     }
   }

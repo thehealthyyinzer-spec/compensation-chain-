@@ -6,7 +6,7 @@ interface ResearchPanelProps {
 }
 
 /**
- * Displays peer-reviewed citations relevant to the scan's flagged patterns.
+ * Displays research citations relevant to the scan's watch areas.
  * Used on both the paid ScanResults and the free scan result screen.
  */
 export default function ResearchPanel({ citations }: ResearchPanelProps) {
@@ -29,10 +29,10 @@ export default function ResearchPanel({ citations }: ResearchPanelProps) {
           </div>
           <div>
             <div className="font-display text-sm font-extrabold uppercase tracking-wider">
-              Research Behind This Assessment
+              Research Behind This Screen
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {citations.length} peer-reviewed {citations.length === 1 ? "source" : "sources"} · We don't make this up
+              {citations.length} research {citations.length === 1 ? "source" : "sources"} · Evidence-informed, not a diagnosis
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function ResearchPanel({ citations }: ResearchPanelProps) {
       {expanded && (
         <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            The thresholds, chain patterns, and protocol recommendations in this assessment are grounded in peer-reviewed biomechanics and sports medicine research. These are the studies behind what you're seeing.
+            The screening ranges and chain-pattern logic are informed by biomechanics and sports medicine research. These studies help guide the conversation, but they do not diagnose an injury or replace a clinician's assessment.
           </p>
           <div className="space-y-3">
             {citations.map((c) => (
@@ -79,7 +79,7 @@ export default function ResearchPanel({ citations }: ResearchPanelProps) {
             ))}
           </div>
           <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
-            This assessment is a movement screen, not a medical diagnosis. Readings depend on camera angle, lighting, and clothing. Consult a qualified clinician for medical advice.
+            This is a movement screen, not a diagnosis. Readings depend on camera angle, lighting, clothing, and how you felt that day. Consult a qualified clinician for pain, injury, numbness, tingling, swelling, or medical advice.
           </p>
         </div>
       )}

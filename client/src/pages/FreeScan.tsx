@@ -70,34 +70,34 @@ const FREE_STEPS = [
 
 const REGION_COPY: Record<string, { headline: string; color: string; recs: string }> = {
   hips: {
-    headline: "the hips",
+    headline: "your hips and pelvis",
     color: "#F97316",
-    recs: "Your hips are where I'd start. When you lean further forward or lose depth as the set goes on, it usually means the glutes are fading and the rest of the body is picking up the slack ... what I call dead butt syndrome. <strong>What I'd recommend:</strong> wake those glutes up before any real load. Glute bridges with a 3-second hold at the top. Side-lying leg raises, slow. Single-leg balance, 30 seconds a side, daily. Activation before load ... always.",
+    recs: "<strong>What the scan noticed:</strong> your hips or pelvis looked like they may be doing extra work to keep you stable. That can show up as shifting, hip drop, or control changing as you fatigue. <strong>Why it matters:</strong> if the hips are not giving you a steady base, your back, knees, or ankles may start helping more than they should. <strong>What to try:</strong> glute bridges with a 3-second hold, slow side-lying leg raises, and single-leg balance. Start with control before adding load.",
   },
   knees: {
-    headline: "the knees",
+    headline: "your knee tracking",
     color: "#F87171",
-    recs: "Your knees are doing more than their share ... a lot of forward knee travel and form that slips under fatigue. The knee is almost never the real problem though. It's the victim. The breakdown usually starts at the hip above it or the ankle below it. <strong>What I'd recommend:</strong> lateral band walks to wake up the glute med, slow tempo squats at half your normal depth, and check that ankle mobility ... tight ankles force the knees to take over.",
+    recs: "<strong>What the scan noticed:</strong> your knee tracking changed under load or fatigue. That does not mean your knees are damaged. It means this is a link worth looking at. <strong>Why it matters:</strong> knee tracking often reflects what is happening above at the hips or below at the ankles. <strong>What to try:</strong> lateral band walks, slow tempo squats at a comfortable depth, and ankle mobility work. If this matches pain, swelling, or giving-way, get a clinician involved.",
   },
   shoulders: {
-    headline: "the shoulders",
+    headline: "your shoulders and head position",
     color: "#A78BFA",
-    recs: "One shoulder sits lower, or your head drifts off center ... usually a sign the upper back is compensating for something further down the chain. <strong>What I'd recommend:</strong> band pull-aparts daily, 2 sets of 15. Wall slides, slow. And notice which side you carry bags, lean at your desk, or hold your phone. The pattern shows up in the scan because it shows up in your day.",
+    recs: "<strong>What the scan noticed:</strong> your head or shoulder position drifted enough to flag as a watch area. <strong>Why it matters:</strong> this can reflect desk posture, breathing mechanics, upper-back stiffness, or how your body organizes tension. <strong>What to try:</strong> band pull-aparts, slow wall slides, and a quick audit of how you sit, carry bags, and hold your phone. If numbness, tingling, or sharp pain is involved, get evaluated.",
   },
   core: {
-    headline: "the core",
+    headline: "your trunk control",
     color: "#FBBF24",
-    recs: "Your trunk is leaning or drifting to compensate ... and it gets worse as you fatigue, which means the core isn't bracing the way it should under load. <strong>What I'd recommend:</strong> dead bugs, slow and controlled, exhaling hard every rep. Suitcase carries ... a weight in ONE hand, walking tall without leaning. The core's job is to resist movement, not create it.",
+    recs: "<strong>What the scan noticed:</strong> your trunk appeared to lean or shift while you moved. <strong>Why it matters:</strong> trunk control is one of the ways your body keeps load from spilling into the back, hips, or knees. <strong>What to try:</strong> slow dead bugs with a full exhale, bird dogs, and light suitcase carries where the goal is staying tall without leaning.",
   },
   ankles: {
-    headline: "the ankles",
+    headline: "your ankle mobility",
     color: "#34D399",
-    recs: "Your ankles look stiff ... limited travel forces the knees and hips to compensate higher up the chain. <strong>What I'd recommend:</strong> knee-to-wall ankle stretches daily, calf raises through a full range, and slow tempo squats focusing on keeping the heels down. Free up the ankle and watch the knees stop taking the hit.",
+    recs: "<strong>What the scan noticed:</strong> your ankle motion may be limiting how the rest of the chain organizes. <strong>Why it matters:</strong> when the ankle does not move well, the body often borrows motion from the knees, hips, or low back. <strong>What to try:</strong> knee-to-wall ankle rocks, full-range calf raises, and slow squats where the goal is control, not depth.",
   },
   none: {
-    headline: "... nowhere major",
+    headline: "no major watch area",
     color: "#34D399",
-    recs: "Honestly? Your movement held up well across all three ... even as you fatigued. That's worth something. But a single camera only sees so much ... it can't feel how your body actually moves under real load, day after day. <strong>What I'd recommend:</strong> keep training, and if something still doesn't feel right even though the scan looks clean ... that's exactly the conversation worth having.",
+    recs: "<strong>What the scan noticed:</strong> your movement held up well across the free screen. That is a good sign. <strong>Why it matters:</strong> a camera can read visible patterns, but it cannot feel pain, history, confidence, or how your body responds under real training load. <strong>What to try:</strong> keep building gradually, and if something still feels off, that is worth a conversation.",
   },
 };
 
@@ -116,7 +116,7 @@ interface Finding {
   value: string;
   rawValue: number;
   unit: string;
-  norm: string; // e.g. "Ideal < 2°"
+  norm: string; // e.g. "Target < 2°"
   level: "good" | "warn" | "bad";
 }
 
@@ -619,13 +619,13 @@ export default function FreeScan() {
         const level: "good" | "warn" | "bad" = mag >= bad ? "bad" : mag >= warn ? "warn" : "good";
         if (level !== "good") regionScores[m.region] = (regionScores[m.region] || 0) + (level === "bad" ? 2 : 1);
         const display = m.unit === "%" ? Math.round(mag) + "%" : m.unit === "°" ? mag.toFixed(1) + "°" : (mag * 100).toFixed(0);
-        // Compute norm label for context
+        // Compute reference label for context
         const normLabel = (() => {
           if (m.unit === "°" && m.bad != null) {
-            return m.capacity ? `Norm ≥${m.warn}°` : `Ideal < ${m.warn}°`;
+            return m.capacity ? `Target ≥${m.warn}°` : `Target < ${m.warn}°`;
           }
           if (m.unit === "%" && m.bad != null) {
-            return m.capacity ? `Norm ≥${m.warn}%` : `Ideal < ${m.warn}%`;
+            return m.capacity ? `Target ≥${m.warn}%` : `Target < ${m.warn}%`;
           }
           return "";
         })();
@@ -656,7 +656,7 @@ export default function FreeScan() {
               THE HEALTHY <span className="text-teal">YINZER</span>
             </div>
             <div className="text-xs text-[#9aa3c0] tracking-wide mt-0.5">
-              The Chain Check ... a free 3-minute scan of where your chain breaks down
+              The Chain Check ... a free 3-minute movement screen
             </div>
           </div>
           <div className="font-display font-bold text-orange text-base tracking-widest">#COMPENSATIONCHAIN</div>
@@ -664,10 +664,10 @@ export default function FreeScan() {
 
         <div className="max-w-xl mx-auto px-5 py-10 text-center space-y-6">
           <h1 className="font-display text-4xl font-extrabold uppercase tracking-wide leading-tight">
-            Find Out Where Your<br /><span className="text-teal">Chain Breaks Down</span>
+            See What Your<br /><span className="text-teal">Movement Suggests</span>
           </h1>
           <p className="text-[#aab3cf] text-sm leading-relaxed max-w-md mx-auto">
-            Three movements. A few minutes. The scanner watches how your body actually moves and shows you where your chain breaks down ... for free.
+            Three movements. A few minutes. The screen looks for visible patterns that may explain where your body is protecting or compensating.
             <br /><br />
             You'll need room to stand 6–8 feet back from your phone, and space to turn sideways.
           </p>
@@ -807,7 +807,7 @@ export default function FreeScan() {
                 Your scan is <span className="text-teal">done</span>.
               </h2>
               <p className="text-[#aab3cf] text-sm leading-relaxed mt-2">
-                The scanner watched all three movements ... including what shifted as you got tired. Tell me where to send your result and I'll show you where your chain breaks down, plus what I'd recommend based on what it found.
+                The screen watched all three movements ... including what shifted as you got tired. Tell me where to send your result and I'll show you the pattern it noticed, why it matters, and what I'd try first.
               </p>
             </div>
 
@@ -840,7 +840,7 @@ export default function FreeScan() {
                     className={`p-4 rounded-xl border cursor-pointer transition-all text-sm ${lane === "rebuild" ? "border-teal bg-teal/8" : "border-[#3a4060] bg-[#1A1F3A] hover:border-teal/50"}`}
                   >
                     <div className="font-display text-base font-bold uppercase tracking-wide text-orange mb-1">Finished PT but still stuck</div>
-                    Coming back from an injury or surgery. Discharged, but not back to normal.
+                    Coming back from an injury or surgery. Discharged, but not fully confident yet.
                   </div>
                   <div
                     onClick={() => setLane("restart")}
@@ -907,8 +907,17 @@ export default function FreeScan() {
           <div className="text-center pb-2">
             <div className="font-display text-base font-bold uppercase tracking-widest text-[#E6B84A] mb-2">Chain Check Result</div>
             <h2 className="font-display text-4xl font-extrabold uppercase tracking-wide leading-tight">
-              {firstName}, your chain breaks down at{" "}
-              <span style={{ color: copy.color }}>{copy.headline}</span>
+              {resultRegion === "none" ? (
+                <>
+                  {firstName}, your scan shows{" "}
+                  <span style={{ color: copy.color }}>{copy.headline}</span>
+                </>
+              ) : (
+                <>
+                  {firstName}, your scan suggests a watch area around{" "}
+                  <span style={{ color: copy.color }}>{copy.headline}</span>
+                </>
+              )}
             </h2>
           </div>
 
@@ -941,7 +950,7 @@ export default function FreeScan() {
                       <>
                         <span className="text-[#4a5178]">vs</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-[#9aa3c0]">Normal:</span>
+                          <span className="text-xs text-[#9aa3c0]">Reference:</span>
                           <span className="text-sm font-bold text-[#34D399]">{f.norm}</span>
                         </div>
                       </>
@@ -1028,10 +1037,10 @@ export default function FreeScan() {
                   </div>
                   <div>
                     <div className="font-display text-sm font-extrabold uppercase tracking-wider text-[#F8F6F0]">
-                      Research Behind This Assessment
+                      Research Behind This Screen
                     </div>
                     <div className="text-xs text-[#9aa3c0] mt-0.5">
-                      {scanCitations.length} peer-reviewed {scanCitations.length === 1 ? "source" : "sources"} · We don't make this up
+                      {scanCitations.length} research {scanCitations.length === 1 ? "source" : "sources"} · Evidence-informed, not a diagnosis
                     </div>
                   </div>
                 </div>
@@ -1043,7 +1052,7 @@ export default function FreeScan() {
               {showCitations && (
                 <div className="px-5 pb-5 space-y-3 border-t border-[#3a4060] pt-4">
                   <p className="text-xs text-[#9aa3c0] leading-relaxed">
-                    The thresholds and chain patterns in this assessment are grounded in peer-reviewed biomechanics research. These are the studies behind what you're seeing.
+                    The screening ranges and chain-pattern logic are informed by biomechanics research. These studies help guide the conversation, but they do not diagnose an injury or replace a clinician's assessment.
                   </p>
                   {scanCitations.map((c) => (
                     <div key={c.id} className="bg-[#2A3050] rounded-xl p-4 border border-[#3a4060]">
@@ -1074,7 +1083,7 @@ export default function FreeScan() {
       </div>
 
       <p className="text-center text-xs text-[#7c85a8] px-5 pb-8 leading-relaxed">
-        The Chain Check is a screening aid, not a diagnosis. Readings depend on camera angle, lighting, and clothing. © The Healthy Yinzer
+        The Chain Check is a screening aid, not a diagnosis. Readings depend on camera angle, lighting, clothing, and how you felt that day. © The Healthy Yinzer
       </p>
     </div>
   );

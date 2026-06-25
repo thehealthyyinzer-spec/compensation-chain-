@@ -4,7 +4,7 @@
 
 Chain Check is a full-stack web application for movement screening and coaching. It uses real-time pose detection (MediaPipe) to assess compensation patterns in the kinetic chain. Dysfunction can enter the chain at any joint — ankles, knees, hips, shoulders, wherever. The framework is always: **where does YOUR chain break down?** Pain rarely stays where it started. That's the concept.
 
-Every threshold, chain pattern, and protocol recommendation is grounded in peer-reviewed biomechanics research.
+The screening ranges, chain patterns, and protocol recommendations are informed by biomechanics research and intended to guide coaching conversations.
 
 > "Pain rarely stays where it started. We work the pattern, not the symptom."
 > — Coach Nick
@@ -35,7 +35,7 @@ Every threshold, chain pattern, and protocol recommendation is grounded in peer-
 - **Send magic link** — one click fires a login link to any client
 - **Per-client trend charts** — 16-week metric trends, one line per measurement
 - **GHL trigger** — manually apply a tag or fire a workflow from within the dashboard
-- **Progression flags** — after Week 4+, persistent compensation patterns surface specific activation protocols with clinical basis and citations
+- **Progression flags** — after Week 4+, persistent compensation patterns surface specific activation protocols with research-informed rationale and citations
 
 ### Free Scan Lead Magnet (`/free-scan`)
 
@@ -81,7 +81,7 @@ client/src/
     FreeScan.tsx      — Public lead magnet (/free-scan)
   components/
     ChainMap.tsx      — Interactive SVG body figure with hover tooltips
-    ResearchPanel.tsx — Collapsible peer-reviewed citations panel
+    ResearchPanel.tsx — Collapsible research citations panel
     Roadmap.tsx       — 16-week checkpoint progress track
   lib/
     moveLibrary.ts    — All movement definitions, metrics, benchmarks
@@ -102,12 +102,12 @@ drizzle/
 
 ## Compensation Chain Science
 
-All detection thresholds and chain patterns are derived from peer-reviewed research. Key sources:
+The screen uses research-informed ranges and pattern rules. These are coaching aids, not medical cutoffs. Key sources:
 
 - **Taylor et al. (2021)** — Every 1° of ankle dorsiflexion restriction = 1.2° less peak knee flexion. *Sports Health, PMC9112706*
-- **Lima et al. (2018)** — Restricted ankle dorsiflexion significantly associated with dynamic knee valgus (SMD −1.25). *Physical Therapy in Sport*
+- **Lima et al. (2018)** — Restricted ankle dorsiflexion was associated with dynamic knee valgus in a systematic review/meta-analysis. *Physical Therapy in Sport*
 - **Rabin et al. (2016)** — Low dorsiflexion → greater peak hip adduction and knee external rotation. *JOSPT*
-- **Hodel et al. (2023)** — Lateral pelvic tilt directly associated with knee valgus and hip internal rotation. *Journal of Orthopaedic Research*
+- **Hodel et al. (2023)** — Lateral pelvic tilt was associated with knee valgus and hip rotation. *Journal of Orthopaedic Research*
 - **Donati et al. (2024)** — Hip asymmetry > 5° associated with altered knee mechanics and IT band compensation. *Applied Sciences*
 - **Cook et al. (2014)** — FMS identifies compensatory movement patterns in the kinetic chain. *IJSPT, PMC4060319*
 - **Mahmoud et al. (2019)** — Forward head posture increases cervical spine compressive loading. *Current Reviews in Musculoskeletal Medicine*
@@ -132,7 +132,7 @@ pnpm test
 pnpm drizzle-kit generate
 ```
 
-Requires a `DATABASE_URL` environment variable (MySQL/TiDB connection string). All other secrets are injected via the Manus platform environment.
+Requires a `DATABASE_URL` environment variable (MySQL/TiDB connection string). Production magic links also require `PUBLIC_BASE_URL` or `APP_URL` so login emails are generated from a trusted app URL instead of request headers. All other secrets are injected via the Manus platform environment.
 
 ---
 
@@ -176,4 +176,4 @@ The Compensation Chain framework asks one question: where does YOUR chain break 
 
 ---
 
-*This is a movement screen, not a medical diagnosis. Readings depend on camera angle, lighting, and clothing.*
+*This is a movement screen, not a diagnosis. Readings depend on camera angle, lighting, clothing, and how the person felt that day.*
