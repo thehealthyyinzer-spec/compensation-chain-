@@ -119,4 +119,4 @@
 
 ## Login Flow Fixes
 - [x] Add 3-second countdown before hold capture starts — 3-2-1 gold ring before recording begins
-- [ ] Returning flow — show Open My Dashboard button on screen after email submit (same as New Here, no email dependency)
+- [x] Returning flow — show Open My Dashboard button on screen after email submit (same as New Here, no email dependency)

@@ -25,18 +25,26 @@ export const appRouter = router({
 
   // ==================== MAGIC LINK AUTH ====================
   magicLink: router({
-    // Request a magic link — sends to email (for now, creates the link and returns it for testing)
+    // Request a magic link — returns loginUrl for on-screen display + fires GHL email as backup
     request: publicProcedure
-      .input(z.object({ email: z.string().email() }))
+      .input(z.object({ email: z.string().email(), origin: z.string() }))
       .mutation(async ({ input }) => {
         const token = nanoid(48);
-        const expiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+        const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
         await db.createMagicLink(input.email, token, expiresAt);
 
-        // In production, this would send an email via GHL or another service.
-        // For now, return the token so the frontend can construct the link.
-        return { success: true, token };
+        const loginUrl = `${input.origin}/verify?token=${token}`;
+
+        // Look up client name for the email
+        const clientRecord = await db.getClientByEmail(input.email);
+        const firstName = clientRecord?.name?.split(" ")[0] || "there";
+
+        // Fire GHL email as backup (async, non-blocking)
+        ghlSendMagicLinkEmail({ email: input.email, firstName, loginUrl })
+          .catch((e) => console.error("[GHL] Returning client email failed:", e));
+
+        return { success: true, loginUrl };
       }),
 
     // Self-registration — anyone can sign up, auto-creates client account and sends magic link

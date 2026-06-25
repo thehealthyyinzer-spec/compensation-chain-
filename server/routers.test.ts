@@ -94,16 +94,16 @@ describe("auth.me", () => {
 });
 
 describe("magicLink.request", () => {
-  it("returns a token for a valid email", async () => {
+  it("returns a loginUrl for a valid email", async () => {
     const { ctx } = createUnauthContext();
     const caller = appRouter.createCaller(ctx);
 
     // This will fail without DB but tests the shape
     try {
-      const result = await caller.magicLink.request({ email: "test@example.com" });
+      const result = await caller.magicLink.request({ email: "test@example.com", origin: "https://example.com" });
       expect(result.success).toBe(true);
-      expect(result.token).toBeDefined();
-      expect(typeof result.token).toBe("string");
+      expect(result.loginUrl).toBeDefined();
+      expect(typeof result.loginUrl).toBe("string");
     } catch (e: any) {
       // Expected if DB is not available in test environment
       expect(e.message).toContain("Database");

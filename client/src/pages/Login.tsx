@@ -25,9 +25,12 @@ export default function Login() {
     onError: (err) => setError(err.message),
   });
 
-  // Returning client — just request a new link
+  // Returning client — request a new link, show button on screen
   const requestLink = trpc.magicLink.request.useMutation({
-    onSuccess: () => setSent(true),
+    onSuccess: (data) => {
+      if (data.loginUrl) setLoginUrl(data.loginUrl);
+      setSent(true);
+    },
     onError: (err) => setError(err.message),
   });
 
@@ -48,7 +51,7 @@ export default function Login() {
       if (!name.trim()) { setError("Enter your first name."); return; }
       selfRegister.mutate({ name: name.trim(), email: email.trim().toLowerCase(), origin: window.location.origin });
     } else {
-      requestLink.mutate({ email: email.trim().toLowerCase() });
+      requestLink.mutate({ email: email.trim().toLowerCase(), origin: window.location.origin });
     }
   };
 
