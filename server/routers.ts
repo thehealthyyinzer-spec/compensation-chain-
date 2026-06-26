@@ -476,6 +476,14 @@ export const appRouter = router({
         return { success: true, clientId };
       }),
 
+    // Delete a client and all their data
+    deleteClient: adminProcedure
+      .input(z.object({ clientId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteClient(input.clientId);
+        return { success: true };
+      }),
+
     // Trigger GHL webhook manually
     triggerWebhook: adminProcedure
       .input(z.object({

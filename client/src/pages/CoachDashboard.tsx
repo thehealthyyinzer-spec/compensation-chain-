@@ -9,7 +9,7 @@ import { computeScanStatus } from "@/lib/scanUtils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, setTriggerClientId, triggerWebhook, sendMagicLink }: any) {
+function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, setTriggerClientId, triggerWebhook, sendMagicLink, onDelete }: any) {
   const status = getStatus(c.latestSession);
   const lastDate = c.latestSession ? new Date(c.latestSession.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "No scans";
   return (
@@ -56,6 +56,17 @@ function ClientRow({ c, getStatus, statusColors, navigate, ghlTag, setGhlTag, se
           </DialogContent>
         </Dialog>
         <Button variant="outline" size="sm" className="font-display text-xs uppercase tracking-wider" onClick={() => navigate(`/coach/client/${c.id}`)}>View</Button>
+        <button
+          onClick={() => {
+            if (confirm(`Remove ${c.name} from your dashboard? This cannot be undone.`)) {
+              onDelete(c.id);
+            }
+          }}
+          className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors text-sm"
+          title="Remove client"
+        >
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -120,6 +131,15 @@ export default function CoachDashboard() {
       });
     },
     onError: () => toast.error("Failed to send link."),
+  });
+
+  const utils = trpc.useUtils();
+  const deleteClient = trpc.admin.deleteClient.useMutation({
+    onSuccess: () => {
+      toast.success("Client removed.");
+      utils.admin.clients.invalidate();
+    },
+    onError: () => toast.error("Failed to remove client."),
   });
 
   if (authLoading || isLoading) {
@@ -211,7 +231,7 @@ export default function CoachDashboard() {
                   Needs Attention
                 </h3>
                 <div className="space-y-2">
-                  {categorized.attention?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
+                  {categorized.attention?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} onDelete={(id: number) => deleteClient.mutate({ clientId: id })} />)}
                 </div>
               </div>
             )}
@@ -223,7 +243,7 @@ export default function CoachDashboard() {
                   Scan Due
                 </h3>
                 <div className="space-y-2">
-                  {categorized.due?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
+                  {categorized.due?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} onDelete={(id: number) => deleteClient.mutate({ clientId: id })} />)}
                 </div>
               </div>
             )}
@@ -235,7 +255,7 @@ export default function CoachDashboard() {
                   On Track
                 </h3>
                 <div className="space-y-2">
-                  {categorized.good?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} />)}
+                  {categorized.good?.map((c) => <ClientRow key={c.id} c={c} getStatus={getStatus} statusColors={statusColors} navigate={navigate} ghlTag={ghlTag} setGhlTag={setGhlTag} setTriggerClientId={setTriggerClientId} triggerWebhook={triggerWebhook} sendMagicLink={sendMagicLink} onDelete={(id: number) => deleteClient.mutate({ clientId: id })} />)}
                 </div>
               </div>
             )}

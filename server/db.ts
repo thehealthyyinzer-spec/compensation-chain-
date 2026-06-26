@@ -241,3 +241,12 @@ export async function getAllFreeScanSubmissions() {
   const { desc } = await import("drizzle-orm");
   return db.select().from(freeScanSubmissions).orderBy(desc(freeScanSubmissions.createdAt)).limit(200);
 }
+
+export async function deleteClient(clientId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { eq } = await import("drizzle-orm");
+  // Delete sessions first (foreign key), then client record
+  await db.delete(sessions).where(eq(sessions.clientId, clientId));
+  await db.delete(clients).where(eq(clients.id, clientId));
+}
