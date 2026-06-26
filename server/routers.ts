@@ -18,14 +18,8 @@ function getHeaderValue(value: string | string[] | undefined): string | undefine
 }
 
 function getRequestOrigin(req: { protocol?: string; headers: Record<string, string | string[] | undefined> }): string {
+  // Prefer explicit env var, then fall back to request headers (works in all environments)
   if (ENV.publicBaseUrl) return ENV.publicBaseUrl.replace(/\/$/, "");
-
-  if (ENV.isProduction) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "PUBLIC_BASE_URL or APP_URL must be configured to send login links.",
-    });
-  }
 
   const forwardedHost = getHeaderValue(req.headers["x-forwarded-host"]);
   const host = forwardedHost || getHeaderValue(req.headers.host);
@@ -34,7 +28,7 @@ function getRequestOrigin(req: { protocol?: string; headers: Record<string, stri
   }
 
   const forwardedProto = getHeaderValue(req.headers["x-forwarded-proto"]);
-  const proto = forwardedProto || req.protocol || "http";
+  const proto = forwardedProto || req.protocol || "https";
   return `${proto}://${host}`.replace(/\/$/, "");
 }
 
