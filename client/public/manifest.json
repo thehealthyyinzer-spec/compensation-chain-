@@ -1,0 +1,20 @@
+{
+  "name": "Chain Check — The Healthy Yinzer",
+  "short_name": "Chain Check",
+  "description": "Find out where your chain breaks down. A movement assessment tool by Coach Nick Venuti.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A1F3A",
+  "theme_color": "#00B4D8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663346013751/7va6UmsagGTmUsPmzFu7BX/chain-check-icon-LaueRd4WJ4iJrUgjP3qCjN.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness"],
+  "lang": "en"
+}

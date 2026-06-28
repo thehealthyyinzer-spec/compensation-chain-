@@ -544,7 +544,9 @@ export const appRouter = router({
         email: z.string().email(),
         firstName: z.string().min(1),
         quizResult: z.enum(["rebuild", "restart"] as [string, ...string[]]),
-        scanData: z.record(z.string(), z.any()),
+        // scanData is an array of movement results: [{ key, type, vals }]
+        scanData: z.union([z.array(z.any()), z.record(z.string(), z.any())]),
+        confidence: z.number().min(0).max(1).optional(),
       }))
       .mutation(async ({ input }) => {
         // Store in DB

@@ -106,7 +106,7 @@ type ScanPhase = "intro" | "scanning" | "gate" | "result";
 interface ScanResult {
   key: string;
   type: "hold" | "reps";
-  vals: Record<string, number>;
+  vals: Record<string, number | null>;
 }
 
 interface Finding {
@@ -278,10 +278,26 @@ export default function FreeScan() {
   const finishHold = useCallback((stepIdx: number) => {
     const step = FREE_STEPS[stepIdx];
     const cap = capRef.current;
-    const avg: Record<string, number> = {};
-    const meanArr = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    const avg: Record<string, number | null> = {};
+    const meanArr = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    const isBalance = step.key === "balanceL" || step.key === "balanceR";
+
     step.metrics.forEach((m) => {
-      avg[m.id] = meanArr(cap.samples.map((x: any) => x[m.id] ?? 0));
+      if (m.id === "swayFatigue" && isBalance) {
+        // Compute sway fatigue: late third mean minus early third mean
+        const swayVals = cap.samples.map((x: any) => x.sway).filter((v: any) => v != null) as number[];
+        if (swayVals.length >= 4) {
+          const third = Math.max(1, Math.round(swayVals.length / 3));
+          const early = swayVals.slice(0, third).reduce((a: number, b: number) => a + b, 0) / third;
+          const late = swayVals.slice(-third).reduce((a: number, b: number) => a + b, 0) / third;
+          avg[m.id] = late - early;
+        } else {
+          avg[m.id] = null; // not enough data
+        }
+      } else {
+        const vals = cap.samples.map((x: any) => x[m.id]).filter((v: any) => v != null) as number[];
+        avg[m.id] = meanArr(vals); // null if no valid samples
+      }
     });
     scanResultsRef.current.push({ key: step.key, type: "hold", vals: avg });
     advanceStep(stepIdx);
@@ -315,7 +331,14 @@ export default function FreeScan() {
     const cap = capRef.current;
     const stable = cap.lastHipX != null && Math.abs(vals.midHipX - cap.lastHipX) < 0.012;
     cap.lastHipX = vals.midHipX;
-    const s = {
+
+    // Capture step-specific metrics — balance needs sway/hipDrop, standing needs posture
+    const isBalance = step.key === "balanceL" || step.key === "balanceR";
+    const s: Record<string, number | null> = isBalance ? {
+      sway: vals.sway != null ? ema("sway", vals.sway) : null,
+      hipDrop: vals.hipDrop != null ? ema("hipDrop", vals.hipDrop) : null,
+      swayFatigue: null, // computed at finishHold from early vs late samples
+    } : {
       shoulderTilt: ema("shoulderTilt", vals.shoulderTilt),
       hipTilt: ema("hipTilt", vals.hipTilt),
       headLean: ema("headLean", vals.headLean),
